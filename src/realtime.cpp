@@ -4,7 +4,14 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <iostream>
+#include "camera.h"
 #include "settings.h"
+#include "shapes/Cone.h"
+#include "shapes/Cube.h"
+#include "shapes/Cylinder.h"
+#include "shapes/Sphere.h"
+#include "utils/sceneparser.h"
+#include "utils/shaderloader.h"
 
 // ================== Project 5: Lights, Camera
 
@@ -30,8 +37,42 @@ void Realtime::finish() {
     this->makeCurrent();
 
     // Students: anything requiring OpenGL calls when the program exits should be done here
+    for (auto& vboPair : shapeTypeVBOs) {
+        GLuint vbo = vboPair.second;
+        glDeleteBuffers(1, &vbo);
+    }
+
+    glDeleteVertexArrays(1, &m_vao);
+    glDeleteProgram(m_shader);
 
     this->doneCurrent();
+}
+
+void Realtime::initializeShapeVBOs() {
+    // Create and set up a VBO for each shape type
+    std::vector<PrimitiveType> shapeTypes = {PrimitiveType::PRIMITIVE_SPHERE,
+                                             PrimitiveType::PRIMITIVE_CUBE,
+                                             PrimitiveType::PRIMITIVE_CYLINDER,
+                                             PrimitiveType::PRIMITIVE_CONE,
+    };
+    for (const auto& type : shapeTypes) {
+        // generate vbo
+        GLuint vbo;
+
+        // check if vbo for type already exists
+        if (shapeTypeVBOs[type] > 0) {
+            vbo = shapeTypeVBOs[type];
+        } else {
+            glGenBuffers(1, &vbo);
+        }
+
+        // Call bindVbo to generate shape data and bind it to the VBO
+        bindVbo(type, vbo);
+
+        // Store the VBO and VAO in the map
+        shapeTypeVBOs[type] = vbo;
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
 }
 
 void Realtime::initializeGL() {
@@ -55,29 +96,199 @@ void Realtime::initializeGL() {
     glEnable(GL_CULL_FACE);
     // Tells OpenGL how big the screen is
     glViewport(0, 0, size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
-
+    glClearColor(0, 0, 0, 0);
     // Students: anything requiring OpenGL calls when the program starts should be done here
+    m_shader = ShaderLoader::createShaderProgram(":/resources/shaders/default.vert", ":/resources/shaders/default.frag");
+
+    // setup VAO
+    glGenVertexArrays(1, &m_vao);
+    glBindVertexArray(m_vao);
+    // Set up vertex attribute pointers
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), reinterpret_cast<void*>(0));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), reinterpret_cast<void*>(3 * sizeof(GL_FLOAT)));
+
+    shapeTypeVBOs[PrimitiveType::PRIMITIVE_SPHERE] = 0;
+    shapeTypeVBOs[PrimitiveType::PRIMITIVE_CUBE] = 0;
+    shapeTypeVBOs[PrimitiveType::PRIMITIVE_CYLINDER] = 0;
+    shapeTypeVBOs[PrimitiveType::PRIMITIVE_CONE] = 0;
+
+    Realtime::initializeShapeVBOs();
+
+    // unbind
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    initializedRun = true;
+}
+
+void Realtime::bindVbo(PrimitiveType shapeType, GLuint vbo) {
+    switch (shapeType) {
+        case PrimitiveType::PRIMITIVE_SPHERE:
+            {
+                Sphere sphere;
+                sphere.updateParams(settings.shapeParameter1, settings.shapeParameter2);
+                verts = sphere.generateShape();
+            }
+            break;
+
+        case PrimitiveType::PRIMITIVE_CUBE:
+            {
+                Cube cube;
+                cube.updateParams(settings.shapeParameter1);
+                verts = cube.generateShape();
+            }
+            break;
+
+        case PrimitiveType::PRIMITIVE_CYLINDER:
+            {
+                Cylinder cylinder;
+                cylinder.updateParams(settings.shapeParameter1, settings.shapeParameter2);
+                verts = cylinder.generateShape();
+            }
+        break;
+
+        case PrimitiveType::PRIMITIVE_CONE:
+        {
+                Cone cone;
+                cone.updateParams(settings.shapeParameter1, settings.shapeParameter2);
+                verts = cone.generateShape();
+        }
+        break;
+
+        default:
+            return;
+    }
+
+    // bind
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    // data
+    vertexCount[shapeType] = int(verts.size()) / 6;
+    glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(GLfloat), verts.data(), GL_STATIC_DRAW);
 }
 
 void Realtime::paintGL() {
+
+    // sentry
+    if (renderData.shapes.empty()) {
+        return;
+    }
+
     // Students: anything requiring OpenGL calls every frame should be done here
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(m_shader);
+
+    // camera stuff
+    Camera cam = Camera(renderData.cameraData, width, height, settings.nearPlane, settings.farPlane);
+    glm::mat4 view = cam.getViewMatrix();
+    glm::mat4 proj = cam.getProjectionMatrix();
+
+    GLint viewLoc = glGetUniformLocation(m_shader, "viewMatrix");
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
+
+    GLint projLoc = glGetUniformLocation(m_shader, "projMatrix");
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, &proj[0][0]);
+
+    glm::vec4 camPos = inverse(view) * glm::vec4(0.0, 0.0, 0.0, 1.0);
+    GLint camPosLoc = glGetUniformLocation(m_shader, "camPos");
+    glUniform4fv(camPosLoc, 1, &camPos[0]);
+
+    Realtime::initializeLightingData();
+
+    for (const auto& shape : renderData.shapes) {
+        // update model matrix and other uniforms specific to this shape
+        glm::mat4 model = shape.ctm;
+
+        glBindBuffer(GL_ARRAY_BUFFER, shapeTypeVBOs[shape.primitive.type]);
+
+        glBindVertexArray(m_vao);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), reinterpret_cast<void*>(0));
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), reinterpret_cast<void*>(3 * sizeof(GL_FLOAT)));
+
+        GLint modelMatrixLoc = glGetUniformLocation(m_shader, "modelMatrix");
+        glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &model[0][0]);
+
+        GLint ambientLoc = glGetUniformLocation(m_shader, "matAmbient");
+        glUniform4fv(ambientLoc, 1, &shape.primitive.material.cAmbient[0]);
+
+        GLint diffuseLoc = glGetUniformLocation(m_shader, "matDiffuse");
+        glUniform4fv(diffuseLoc, 1, &shape.primitive.material.cDiffuse[0]);
+
+        GLint specularLoc = glGetUniformLocation(m_shader, "matSpecular");
+        glUniform4fv(specularLoc, 1, &shape.primitive.material.cSpecular[0]);
+
+        GLint shinyLoc = glGetUniformLocation(m_shader, "shininess");
+        glUniform1f(shinyLoc, shape.primitive.material.shininess);
+
+        // draw
+        glDrawArrays(GL_TRIANGLES, 0, vertexCount[shape.primitive.type]);
+
+    }
+
+
+    // Unbind VAO and shaders
+    glBindVertexArray(0);
+    glUseProgram(0);
 }
 
 void Realtime::resizeGL(int w, int h) {
     // Tells OpenGL how big the screen is
     glViewport(0, 0, size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
 
+    width = w;
+    height = h;
     // Students: anything requiring OpenGL calls when the program starts should be done here
 }
 
-void Realtime::sceneChanged() {
+void Realtime::initializeLightingData() {
 
+    // get relevant renderData
+    SceneGlobalData global = renderData.globalData;
+
+    // pass light position and m_kd into the fragment shader as a uniform
+    for (int i = 0; i < renderData.lights.size(); ++i) {
+        SceneLightData light = renderData.lights[i];
+
+        if (light.type == LightType::LIGHT_DIRECTIONAL) {
+            std::string locString = "lightDirs[" + std::to_string(i) + "]";
+            GLint lightDirLoc = glGetUniformLocation(m_shader, locString.c_str());
+            glUniform4fv(lightDirLoc, 1, &light.dir[0]);
+
+            std::string locString1 = "lightColors[" + std::to_string(i) + "]";
+            GLint lightColorLoc = glGetUniformLocation(m_shader, locString1.c_str());
+            glUniform4fv(lightColorLoc, 1, &light.color[0]);
+        }
+    }
+    GLint lightCountLoc = glGetUniformLocation(m_shader, "lightCount");
+    glUniform1f(lightCountLoc, renderData.lights.size());
+
+    // global lighting params
+    GLint kaLoc = glGetUniformLocation(m_shader, "k_a");
+    glUniform1f(kaLoc, global.ka);
+
+    GLint kdLoc = glGetUniformLocation(m_shader, "k_d");
+    glUniform1f(kdLoc, global.kd);
+
+    GLint ksLoc = glGetUniformLocation(m_shader, "k_s");
+    glUniform1f(ksLoc, global.ks);
+}
+
+void Realtime::sceneChanged() {
+    renderData = RenderData();
+    SceneParser::parse(settings.sceneFilePath, renderData);
     update(); // asks for a PaintGL() call to occur
 }
 
 void Realtime::settingsChanged() {
-
+    if (initializedRun) {
+        Realtime::initializeShapeVBOs();
+    }
     update(); // asks for a PaintGL() call to occur
+
 }
 
 // ================== Project 6: Action!

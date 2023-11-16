@@ -1,6 +1,7 @@
 #pragma once
 
 // Defined before including GLEW to suppress deprecation messages on macOS
+#include "utils/sceneparser.h"
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
 #endif
@@ -31,6 +32,29 @@ protected:
     void resizeGL(int width, int height) override;      // Called when window size changes
 
 private:
+    GLuint m_shader; // Stores id of shader program
+    GLuint m_vbo;    // Stores id of VBO
+    GLuint m_vao;    // Stores id of VAO
+
+    //glm::mat4 m_model = glm::mat4(1);
+    //glm::mat4 m_view  = glm::mat4(1);
+    //glm::mat4 m_proj  = glm::mat4(1);
+
+    bool initializedRun = false;
+    int width;
+    int height;
+    RenderData renderData;
+
+    void initializeShapeVBOs();
+    void bindVbo(PrimitiveType shapeType, GLuint vbo);
+    void initializeLightingData();
+
+    std::unordered_map<PrimitiveType, GLuint> shapeTypeVBOs;
+    std::unordered_map<PrimitiveType, GLuint> shapeTypeVAOs;
+    std::unordered_map<PrimitiveType, int> vertexCount;
+
+    std::vector<GLfloat> verts;
+
     void keyPressEvent(QKeyEvent *event) override;
     void keyReleaseEvent(QKeyEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
