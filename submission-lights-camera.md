@@ -36,9 +36,13 @@ Run the program, open the specified `.json` file, follow the instructions to set
 |      Input: `directional_light_1.json`<br/>Output: `directional_light_1_near_far.png`<br/>Parameters: (**25**, **25**, **8**, **10**)      | ![](https://raw.githubusercontent.com/BrownCSCI1230/scenefiles/main/lights-camera/required_outputs/directional_light_1_near_far.png) | ![Place directional_light_1_near_far.png in student_outputs/lights-camera/required folder](student_outputs/lights-camera/required/directional_light_1_near_far.png) |
 
 ### Design Choices
+VBO for each shape type is only created once on initializeGL, and updated whenever relevant settings are changed.
 
 ### Collaboration/References
+None
 
 ### Known Bugs
+Cone cap normal is wrong. Was confused because in lab08 it looks very similar to handout. Messed with it for a day and posted on Ed, but wasn't able to correct it.
 
 ### Extra Credit
+None
