@@ -42,7 +42,7 @@ VBO for each shape type is only created once on initializeGL, and updated whenev
 None
 
 ### Known Bugs
-Cone cap normal is wrong. Was confused because in lab08 it looks very similar to handout. Messed with it for a day and posted on Ed, but wasn't able to correct it.
+Cone cap normal is wrong. Was confused because in lab08 it looks very similar to handout. Messed with it for a day and posted on Ed, but wasn't able to correct it in time.
 
 ### Extra Credit
 None
