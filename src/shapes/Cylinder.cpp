@@ -123,7 +123,7 @@ void Cylinder::makeWedge(float currentTheta, float nextTheta) {
     }
 
     makeCapWedge(true, currentTheta, nextTheta);
-    makeCapWedge(false, currentTheta, nextTheta);
+    //makeCapWedge(false, currentTheta, nextTheta);
 
 }
 
