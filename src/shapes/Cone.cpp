@@ -28,14 +28,17 @@ void Cone::makeTile(glm::vec3 topLeft,
         }
     } else {
         if (abs(topLeft.y - 0.5) < 0.001) {
-            normals[0] = glm::vec3(2 * bottomLeft.x, 2 * (-0.5 * bottomLeft.y + 0.25),  2 * bottomLeft.z);
-            normals[3] = glm::vec3(2 * bottomRight.x, 2 * (-0.5 * bottomRight.y + 0.25), 2 * bottomRight.z);
+            glm::vec3 leftDiff = bottomLeft - topLeft;
+            glm::vec3 rightDiff = bottomRight - topRight;
+
+            normals[0] = glm::vec3(2 * topLeft.x,  -0.5 * topLeft.y + 0.25,    2 * topLeft.z) -  0.5f * leftDiff;
+            normals[3] = glm::vec3(2 * topRight.x, -0.5 * topRight.y + 0.25,   2 * topRight.z) - 0.5f * rightDiff;
         } else {
-            normals[0] = glm::vec3(2 * topLeft.x,     -0.5 * topLeft.y + 0.25,     2 * topLeft.z);
-            normals[1] = glm::vec3(2 * bottomLeft.x,  -0.5 * bottomLeft.y + 0.25,  2 * bottomLeft.z);
-            normals[2] = glm::vec3(2 * bottomRight.x, -0.5 * bottomRight.y + 0.25, 2 * bottomRight.z);
-            normals[3] = glm::vec3(2 * topRight.x,    -0.5 * topRight.y + 0.25,    2 * topRight.z);
+            normals[0] = glm::vec3(2 * topLeft.x,  -0.5 * topLeft.y + 0.25,    2 * topLeft.z);
+            normals[3] = glm::vec3(2 * topRight.x, -0.5 * topRight.y + 0.25,   2 * topRight.z);
         }
+        normals[1] = glm::vec3(2 * bottomLeft.x,  -0.5 * bottomLeft.y + 0.25,  2 * bottomLeft.z);
+        normals[2] = glm::vec3(2 * bottomRight.x, -0.5 * bottomRight.y + 0.25, 2 * bottomRight.z);
     }
 
     // bottom left triangle
@@ -133,7 +136,11 @@ void Cone::makeWedge(float currentTheta, float nextTheta) {
             topRight + step * (i + 1) * rightDiff
             );
 
-        makeTile(tileTopLeft, tileTopRight, tileBottomLeft, tileBottomRight, false, glm::vec3());
+        if (abs(tileTopLeft.y - 0.5) < 0.001) {
+            makeTile(tileTopLeft, tileTopRight, tileBottomLeft, tileBottomRight, false, glm::vec3());
+        } else {
+            makeTile(tileTopLeft, tileTopRight, tileBottomLeft, tileBottomRight, false, glm::vec3());
+        }
     }
 
 }

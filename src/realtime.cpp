@@ -180,7 +180,7 @@ void Realtime::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(m_shader);
 
-    // camera stuff
+    // camera stuff, update every paintGL to prepare for movement in Action
     Camera cam = Camera(renderData.cameraData, width, height, settings.nearPlane, settings.farPlane);
     glm::mat4 view = cam.getViewMatrix();
     glm::mat4 proj = cam.getProjectionMatrix();
