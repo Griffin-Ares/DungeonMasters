@@ -17,11 +17,13 @@ uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projMatrix;
 
+uniform mat3 inverseTranspose;
+
 void main() {
     // Task 8: compute the world-space position and normal, then pass them to
     //         the fragment shader using the variables created in task 5
     worldSpacePos = vec3(modelMatrix * vec4(objectSpacePos, 1.0));
-    normal = normalize(mat3(transpose(inverse(modelMatrix))) * objectSpaceNorm);
+    normal = normalize(inverseTranspose * objectSpaceNorm);
 
     // Recall that transforming normals requires obtaining the inverse-transpose of the model matrix!
     // In projects 5 and 6, consider the performance implications of performing this here.

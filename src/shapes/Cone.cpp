@@ -31,8 +31,10 @@ void Cone::makeTile(glm::vec3 topLeft,
             glm::vec3 leftDiff = bottomLeft - topLeft;
             glm::vec3 rightDiff = bottomRight - topRight;
 
-            normals[0] = glm::vec3(2 * topLeft.x,  -0.5 * topLeft.y + 0.25,    2 * topLeft.z) -  0.5f * leftDiff;
-            normals[3] = glm::vec3(2 * topRight.x, -0.5 * topRight.y + 0.25,   2 * topRight.z) - 0.5f * rightDiff;
+            glm::vec3 center = (bottomLeft + bottomRight)/2.f;
+
+            normals[0] = glm::vec3(2 * center.x, -0.5 * bottomLeft.y + 0.25,    2 * center.z); // avg bot left and right
+            normals[3] = glm::vec3(2 * center.x, -0.5 * bottomRight.y + 0.25,   2 * center.z);
         } else {
             normals[0] = glm::vec3(2 * topLeft.x,  -0.5 * topLeft.y + 0.25,    2 * topLeft.z);
             normals[3] = glm::vec3(2 * topRight.x, -0.5 * topRight.y + 0.25,   2 * topRight.z);

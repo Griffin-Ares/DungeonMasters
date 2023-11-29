@@ -37,6 +37,11 @@ public:
 
     glm::vec4 getPos();
 
+    void setPlanes(float newNearPlane, float newFarPlane);
+
+    // movement
+    void moveForward(float distance);
+
 private:
     int width;
     int height;

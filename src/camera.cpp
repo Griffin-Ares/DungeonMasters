@@ -38,9 +38,7 @@ glm::mat4 Camera::getViewMatrix() {
 }
 
 glm::mat4 Camera::getProjectionMatrix() {
-    float fov = getHeightAngle(); // radians
-    float aspectRatio = getAspectRatio();
-    float f = 1.0f / tan(fov / 2.0f); // cotangent of half the vertical field of view
+    // ratio of tangent and height / tangent and width
 
     glm::mat4 remap = glm::mat4(1.0f);
     remap[2][2] = -2.0f;
@@ -56,15 +54,20 @@ glm::mat4 Camera::getProjectionMatrix() {
     unhinged[2][3] = -1.0f;
 
     glm::mat4 perspective = glm::mat4(1.0f);
-    perspective[0][0] = 1.0f / (farPlane * tan((getHeightAngle() * getAspectRatio()) / 2.0f));
-    perspective[1][1] = 1.0f / (farPlane * tan(getHeightAngle() / 2.0f));
+    perspective[0][0] = 1.0f / (farPlane * getAspectRatio() * (tan(getHeightAngle() / 2.0f)));
+    perspective[1][1] = 1.0f / (farPlane * tan(getHeightAngle() / 2.f));
     perspective[2][2] = 1.0f / farPlane;
 
     return remap * unhinged * perspective;
 }
 
+void Camera::setPlanes(float newNearPlane, float newFarPlane) {
+    nearPlane = newNearPlane;
+    farPlane = newFarPlane;
+}
+
 float Camera::getAspectRatio() const {
-    return static_cast<float>(width) / height;
+    return (float) width / height;
 }
 
 float Camera::getHeightAngle() const {
@@ -81,4 +84,11 @@ float Camera::getFocalLength() const {
 
 float Camera::getAperture() const {
     return data.aperture;
+}
+
+void Camera::moveForward(float distance) {
+    glm::vec3 forward = glm::normalize(-glm::vec3(data.look));
+
+    // Update camera position along the forward vector
+    data.pos -= glm::vec4(forward * distance, 0.0f);
 }

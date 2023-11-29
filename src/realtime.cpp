@@ -16,7 +16,8 @@
 // ================== Project 5: Lights, Camera
 
 Realtime::Realtime(QWidget *parent)
-    : QOpenGLWidget(parent)
+    : QOpenGLWidget(parent),
+    cam(renderData.cameraData, 800, 600, 0.1f, 100.f)
 {
     m_prev_mouse_pos = glm::vec2(size().width()/2, size().height()/2);
     setMouseTracking(true);
@@ -118,7 +119,7 @@ void Realtime::initializeGL() {
 
     // unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    glBindVertexArray(0); // 1 vao for each vbo efficiency
 
     initializedRun = true;
 }
@@ -180,8 +181,14 @@ void Realtime::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(m_shader);
 
+    if (m_keyMap[Qt::Key_W]) {
+        cam.moveForward(.1f);
+    }
+    if (m_keyMap[Qt::Key_S]) {
+        cam.moveForward(-.1f);
+    }
+
     // camera stuff, update every paintGL to prepare for movement in Action
-    Camera cam = Camera(renderData.cameraData, width, height, settings.nearPlane, settings.farPlane);
     glm::mat4 view = cam.getViewMatrix();
     glm::mat4 proj = cam.getProjectionMatrix();
 
@@ -211,6 +218,10 @@ void Realtime::paintGL() {
 
         GLint modelMatrixLoc = glGetUniformLocation(m_shader, "modelMatrix");
         glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &model[0][0]);
+
+        glm::mat3 invTranspose = glm::mat3(glm::transpose(glm::inverse(model)));
+        GLint inverseTransposeLoc = glGetUniformLocation(m_shader, "inverseTranspose");
+        glUniformMatrix3fv(inverseTransposeLoc, 1, GL_FALSE, &invTranspose[0][0]);
 
         GLint ambientLoc = glGetUniformLocation(m_shader, "matAmbient");
         glUniform4fv(ambientLoc, 1, &shape.primitive.material.cAmbient[0]);
@@ -253,18 +264,46 @@ void Realtime::initializeLightingData() {
     for (int i = 0; i < renderData.lights.size(); ++i) {
         SceneLightData light = renderData.lights[i];
 
-        if (light.type == LightType::LIGHT_DIRECTIONAL) {
-            std::string locString = "lightDirs[" + std::to_string(i) + "]";
-            GLint lightDirLoc = glGetUniformLocation(m_shader, locString.c_str());
-            glUniform4fv(lightDirLoc, 1, &light.dir[0]);
+        //std::cout << (int)light.type << std::endl;
 
-            std::string locString1 = "lightColors[" + std::to_string(i) + "]";
-            GLint lightColorLoc = glGetUniformLocation(m_shader, locString1.c_str());
-            glUniform4fv(lightColorLoc, 1, &light.color[0]);
-        }
+        // type as int
+        std::string typeString = "lights[" + std::to_string(i) + "].type";
+        GLint lightTypeLoc = glGetUniformLocation(m_shader, typeString.c_str());
+        glUniform1i(lightTypeLoc, (int)light.type);
+
+        // dir
+        std::string dirString = "lights[" + std::to_string(i) + "].dir";
+        GLint lightDirLoc = glGetUniformLocation(m_shader, dirString.c_str());
+        glUniform4fv(lightDirLoc, 1, &light.dir[0]);
+
+        // dir
+        std::string posString = "lights[" + std::to_string(i) + "].pos";
+        GLint lightPosLoc = glGetUniformLocation(m_shader, posString.c_str());
+        glUniform4fv(lightPosLoc, 1, &light.pos[0]);
+
+        // color
+        std::string colorString = "lights[" + std::to_string(i) + "].color";
+        GLint lightColorLoc = glGetUniformLocation(m_shader, colorString.c_str());
+        glUniform4fv(lightColorLoc, 1, &light.color[0]);
+
+        // attenuation
+        std::string attString = "lights[" + std::to_string(i) + "].att";
+        GLint lightAttLoc = glGetUniformLocation(m_shader, attString.c_str());
+        glUniform3fv(lightAttLoc, 1, &light.function[0]);
+
+        // angle
+        std::string angleString = "lights[" + std::to_string(i) + "].angle";
+        GLint lightAngleLoc = glGetUniformLocation(m_shader, angleString.c_str());
+        glUniform1f(lightAngleLoc, light.angle);
+
+        // penumbra
+        std::string penString = "lights[" + std::to_string(i) + "].penumbra";
+        GLint lightPenLoc = glGetUniformLocation(m_shader, penString.c_str());
+        glUniform1f(lightPenLoc, light.penumbra);
+
     }
     GLint lightCountLoc = glGetUniformLocation(m_shader, "lightCount");
-    glUniform1f(lightCountLoc, renderData.lights.size());
+    glUniform1i(lightCountLoc, renderData.lights.size());
 
     // global lighting params
     GLint kaLoc = glGetUniformLocation(m_shader, "k_a");
@@ -280,11 +319,13 @@ void Realtime::initializeLightingData() {
 void Realtime::sceneChanged() {
     renderData = RenderData();
     SceneParser::parse(settings.sceneFilePath, renderData);
+    cam = Camera(renderData.cameraData, width, height, settings.nearPlane, settings.farPlane);
     update(); // asks for a PaintGL() call to occur
 }
 
 void Realtime::settingsChanged() {
     if (initializedRun) {
+        cam.setPlanes(settings.nearPlane, settings.farPlane);
         Realtime::initializeShapeVBOs();
     }
     update(); // asks for a PaintGL() call to occur
