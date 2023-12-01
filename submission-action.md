@@ -122,5 +122,8 @@ None
 I was told on Ed that the discrepancies in saved images in this md are fine, specifically because on my end everything looks perfect until I save,
 leading me to believe it's an issue with the save function. 
 
+Also github just crops my videos for some reason. Notice you can't see the X in the top right of the window. Not an issue with viewport sizing. I can always
+show in-person as well for both these issues.
+
 ### Extra Credit
 None
