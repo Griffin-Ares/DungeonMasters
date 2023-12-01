@@ -40,7 +40,10 @@ public:
     void setPlanes(float newNearPlane, float newFarPlane);
 
     // movement
-    void moveForward(float distance);
+    void moveForward(float distance, float deltaTime);
+    void moveRight(float distance, float deltaTime);
+    void moveUp(float speed, float deltaTime);
+    void rotateCamera(float deltaX, float deltaY);
 
 private:
     int width;

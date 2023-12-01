@@ -45,6 +45,14 @@ void Realtime::finish() {
 
     glDeleteVertexArrays(1, &m_vao);
     glDeleteProgram(m_shader);
+    glDeleteProgram(m_texture_shader);
+
+    glDeleteTextures(1, &m_fbo_texture);
+    glDeleteRenderbuffers(1, &m_fbo_renderbuffer);
+    glDeleteFramebuffers(1, &m_fbo);
+
+    glDeleteBuffers(1, &m_fullscreen_vbo);
+    glDeleteVertexArrays(1, &m_fullscreen_vao);
 
     this->doneCurrent();
 }
@@ -79,6 +87,12 @@ void Realtime::initializeShapeVBOs() {
 void Realtime::initializeGL() {
     m_devicePixelRatio = this->devicePixelRatio();
 
+    m_defaultFBO = 2; // CHANGE DEFAULT FRAMEBUFFER HERE
+    m_screen_width = size().width() * m_devicePixelRatio;
+    m_screen_height = size().height() * m_devicePixelRatio;
+    m_fbo_width = m_screen_width;
+    m_fbo_height = m_screen_height;
+
     m_timer = startTimer(1000/60);
     m_elapsedTimer.start();
 
@@ -100,6 +114,7 @@ void Realtime::initializeGL() {
     glClearColor(0, 0, 0, 0);
     // Students: anything requiring OpenGL calls when the program starts should be done here
     m_shader = ShaderLoader::createShaderProgram(":/resources/shaders/default.vert", ":/resources/shaders/default.frag");
+    m_texture_shader = ShaderLoader::createShaderProgram(":/resources/shaders/texture.vert", ":/resources/shaders/texture.frag");
 
     // setup VAO
     glGenVertexArrays(1, &m_vao);
@@ -120,6 +135,47 @@ void Realtime::initializeGL() {
     // unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0); // 1 vao for each vbo efficiency
+
+    glUseProgram(m_texture_shader);  // Use the texture shader program
+    GLint textureUniform = glGetUniformLocation(m_texture_shader, "texture");  // Replace with your actual uniform name
+    glUniform1i(textureUniform, 0);
+
+    // FBO stuff
+    std::vector<GLfloat> fullscreen_quad_data =
+    { //     POSITIONS    //
+         -1.0f,  1.0f, 0.0f,
+         0.0f,  1.0f,
+         -1.0f, -1.0f, 0.0f,
+         0.0f,  0.0f,
+         1.0f, -1.0f, 0.0f,
+         1.0f,  0.0f,
+         1.0f,  1.0f, 0.0f,
+         1.0f,  1.0f,
+         -1.0f,  1.0f, 0.0f,
+         0.0f,  1.0f,
+         1.0f, -1.0f, 0.0f,
+         1.0f,  0.0f,
+    };
+
+    glGenBuffers(1, &m_fullscreen_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, m_fullscreen_vbo);
+    glBufferData(GL_ARRAY_BUFFER, fullscreen_quad_data.size()*sizeof(GLfloat), fullscreen_quad_data.data(), GL_STATIC_DRAW);
+    glGenVertexArrays(1, &m_fullscreen_vao);
+    glBindVertexArray(m_fullscreen_vao);
+
+    // Task 14: modify the code below to add a second attribute to the vertex attribute array
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), nullptr);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+
+    // Unbind the fullscreen quad's VBO and VAO
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+
+    makeFBO();
 
     initializedRun = true;
 }
@@ -176,17 +232,13 @@ void Realtime::paintGL() {
     if (renderData.shapes.empty()) {
         return;
     }
+    glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+
+    glViewport(0, 0, m_fbo_width, m_fbo_height);
 
     // Students: anything requiring OpenGL calls every frame should be done here
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(m_shader);
-
-    if (m_keyMap[Qt::Key_W]) {
-        cam.moveForward(.1f);
-    }
-    if (m_keyMap[Qt::Key_S]) {
-        cam.moveForward(-.1f);
-    }
 
     // camera stuff, update every paintGL to prepare for movement in Action
     glm::mat4 view = cam.getViewMatrix();
@@ -240,11 +292,35 @@ void Realtime::paintGL() {
 
     }
 
+    glBindFramebuffer(GL_FRAMEBUFFER, m_defaultFBO);
+    glViewport(0, 0, m_screen_width * this->devicePixelRatio(), m_screen_height * this->devicePixelRatio());
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    paintTexture(m_fbo_texture, true);
 
     // Unbind VAO and shaders
     glBindVertexArray(0);
     glUseProgram(0);
 }
+
+void Realtime::paintTexture(GLuint texture, bool doPostProcess) {
+    glUseProgram(m_texture_shader);
+    // Task 32: Set your bool uniform on whether or not to filter the texture drawn
+    GLint doPostProcessPixelLoc = glGetUniformLocation(m_texture_shader, "doPostProcessPixel");
+    glUniform1i(doPostProcessPixelLoc, settings.perPixelFilter ? 1 : 0);
+
+    GLint doPostProcessKernelLoc = glGetUniformLocation(m_texture_shader, "doPostProcessKernel");
+    glUniform1i(doPostProcessKernelLoc, settings.kernelBasedFilter ? 1 : 0);
+
+    glBindVertexArray(m_fullscreen_vao);
+    // Task 10: Bind "texture" to slot 0
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 
 void Realtime::resizeGL(int w, int h) {
     // Tells OpenGL how big the screen is
@@ -253,6 +329,16 @@ void Realtime::resizeGL(int w, int h) {
     width = w;
     height = h;
     // Students: anything requiring OpenGL calls when the program starts should be done here
+    glDeleteTextures(1, &m_fbo_texture);
+    glDeleteRenderbuffers(1, &m_fbo_renderbuffer);
+    glDeleteFramebuffers(1, &m_fbo);
+
+    m_screen_width = size().width() * m_devicePixelRatio;
+    m_screen_height = size().height() * m_devicePixelRatio;
+    m_fbo_width = m_screen_width;
+    m_fbo_height = m_screen_height;
+    // Task 34: Regenerate your FBOs
+    makeFBO();
 }
 
 void Realtime::initializeLightingData() {
@@ -316,6 +402,42 @@ void Realtime::initializeLightingData() {
     glUniform1f(ksLoc, global.ks);
 }
 
+
+void Realtime::makeFBO() {
+    // Task 19: Generate and bind an empty texture, set its min/mag filter interpolation, then unbind
+    glGenTextures(1, &m_fbo_texture);
+    glBindTexture(GL_TEXTURE_2D, m_fbo_texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_fbo_width, m_fbo_height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    // Task 20: Generate and bind a renderbuffer of the right size, set its format, then unbind
+    glGenRenderbuffers(1, &m_fbo_renderbuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, m_fbo_renderbuffer);
+
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_fbo_width, m_fbo_height);
+
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    // Task 18: Generate and bind an FBO
+    glGenFramebuffers(1, &m_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+
+    // Task 21: Add our texture as a color attachment, and our renderbuffer as a depth+stencil attachment, to our FBO
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_fbo_texture, 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_fbo_renderbuffer);
+
+    // Task 22: Unbind the FBO
+    glBindFramebuffer(GL_FRAMEBUFFER, m_defaultFBO);
+}
+
+
 void Realtime::sceneChanged() {
     renderData = RenderData();
     SceneParser::parse(settings.sceneFilePath, renderData);
@@ -364,6 +486,7 @@ void Realtime::mouseMoveEvent(QMouseEvent *event) {
         m_prev_mouse_pos = glm::vec2(posX, posY);
 
         // Use deltaX and deltaY here to rotate
+        cam.rotateCamera(deltaX, deltaY);
 
         update(); // asks for a PaintGL() call to occur
     }
@@ -375,6 +498,24 @@ void Realtime::timerEvent(QTimerEvent *event) {
     m_elapsedTimer.restart();
 
     // Use deltaTime and m_keyMap here to move around
+    if (m_keyMap[Qt::Key_W]) {
+        cam.moveForward(5.f, deltaTime);
+    }
+    if (m_keyMap[Qt::Key_S]) {
+        cam.moveForward(-5.f, deltaTime);
+    }
+    if (m_keyMap[Qt::Key_A]) {
+        cam.moveRight(-5.f, deltaTime);
+    }
+    if (m_keyMap[Qt::Key_D]) {
+        cam.moveRight(5.f, deltaTime);
+    }
+    if (m_keyMap[Qt::Key_Space]) {
+        cam.moveUp(5.f, deltaTime);
+    }
+    if (m_keyMap[Qt::Key_Control]) {
+        cam.moveUp(-5.f, deltaTime);
+    }
 
     update(); // asks for a PaintGL() call to occur
 }

@@ -41,6 +41,21 @@ private:
     //glm::mat4 m_view  = glm::mat4(1);
     //glm::mat4 m_proj  = glm::mat4(1);
 
+    void makeFBO();
+    GLuint m_defaultFBO;
+    int m_fbo_width;
+    int m_fbo_height;
+    int m_screen_width;
+    int m_screen_height;
+    GLuint m_fbo;
+    GLuint m_fbo_texture;
+    GLuint m_fbo_renderbuffer;
+    GLuint m_fullscreen_vbo;
+    GLuint m_fullscreen_vao;
+    GLuint m_texture_shader;
+
+    void paintTexture(GLuint texture, bool doPostProcess);
+
     Camera cam;
 
     bool initializedRun = false;

@@ -86,9 +86,71 @@ float Camera::getAperture() const {
     return data.aperture;
 }
 
-void Camera::moveForward(float distance) {
+void Camera::moveForward(float speed, float deltaTime) {
     glm::vec3 forward = glm::normalize(-glm::vec3(data.look));
 
-    // Update camera position along the forward vector
+    float distance = speed * deltaTime;
+
     data.pos -= glm::vec4(forward * distance, 0.0f);
+}
+
+void Camera::moveRight(float speed, float deltaTime) {
+    glm::vec3 forward = glm::normalize(-glm::vec3(data.look));
+    glm::vec3 up = glm::normalize(glm::vec3(data.up));
+    glm::vec3 right = glm::cross(up, forward);
+
+    float distance = speed * deltaTime;
+
+    data.pos += glm::vec4(right * distance, 0.0f);
+}
+
+void Camera::moveUp(float speed, float deltaTime) {
+    glm::vec3 upDirection = glm::normalize(glm::vec3(data.up));
+
+    float distance = speed * deltaTime;
+
+    data.pos += glm::vec4(upDirection * distance, 0.0f);
+}
+
+glm::mat4 createRotationMatrix(float angle, const glm::vec3& axis) {
+    // glm::rotate not allowed...
+    glm::vec3 normalizedAxis = glm::normalize(axis);
+    float x = normalizedAxis.x;
+    float y = normalizedAxis.y;
+    float z = normalizedAxis.z;
+    float c = cos(angle);
+    float s = sin(angle);
+
+    glm::mat4 rotationMatrix = glm::mat4(1.0f);
+    rotationMatrix[0][0] = c + (1 - c) * x * x;
+    rotationMatrix[0][1] = (1 - c) * x * y - s * z;
+    rotationMatrix[0][2] = (1 - c) * x * z + s * y;
+
+    rotationMatrix[1][0] = (1 - c) * y * x + s * z;
+    rotationMatrix[1][1] = c + (1 - c) * y * y;
+    rotationMatrix[1][2] = (1 - c) * y * z - s * x;
+
+    rotationMatrix[2][0] = (1 - c) * z * x - s * y;
+    rotationMatrix[2][1] = (1 - c) * z * y + s * x;
+    rotationMatrix[2][2] = c + (1 - c) * z * z;
+
+    return rotationMatrix;
+}
+
+void Camera::rotateCamera(float deltaX, float deltaY) {
+    float sensitivity = 0.001f; // sens
+
+    // yaw
+    glm::mat4 yawMatrix = createRotationMatrix(-deltaX * sensitivity, glm::vec3(0.0f, 1.0f, 0.0f));
+    data.look = yawMatrix * data.look;
+    data.up = yawMatrix * data.up;
+
+    // pitch
+    glm::vec3 right = glm::cross(glm::vec3(data.up), glm::vec3(data.look));
+    glm::mat4 pitchMatrix = createRotationMatrix(deltaY * sensitivity, right);
+    data.look = pitchMatrix * data.look;
+    data.up = pitchMatrix * data.up;
+
+    data.look = glm::normalize(data.look);
+    data.up = glm::normalize(data.up);
 }
