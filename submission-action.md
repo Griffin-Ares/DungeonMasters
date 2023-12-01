@@ -113,9 +113,14 @@ Paste your output on top of this comment!
 -->
 
 ### Design Choices
+Went with sharpen and invert for the filters. You can change default FBO value in beginning of initializeGL, it should be commented.
 
 ### Collaboration/References
+None
 
 ### Known Bugs
+I was told on Ed that the discrepancies in saved images in this md are fine, specifically because on my end everything looks perfect until I save,
+leading me to believe it's an issue with the save function. 
 
 ### Extra Credit
+None
