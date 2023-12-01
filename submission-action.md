@@ -86,6 +86,10 @@ https://github.com/BrownCSCI1230/projects_realtime_template/assets/45575415/710f
 
 ##### Your Output
 
+
+https://github.com/BrownCSCI1230/projects-realtime-Griffin-Ares/assets/25391163/4ca95ad5-ecc5-4125-92f8-90c67c013ee8
+
+
 <!---
 Paste your output on top of this comment!
 -->
@@ -99,6 +103,10 @@ _Instructions:_ Load `chess.json`. Take a look around!
 https://github.com/BrownCSCI1230/projects_realtime_template/assets/45575415/a14f4d32-88ee-4f5f-9843-74dd5c89b9dd
 
 ##### Your Output
+
+
+https://github.com/BrownCSCI1230/projects-realtime-Griffin-Ares/assets/25391163/f81236b0-d0f7-4676-89d3-867063b08e17
+
 
 <!---
 Paste your output on top of this comment!
