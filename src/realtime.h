@@ -2,6 +2,7 @@
 
 // Defined before including GLEW to suppress deprecation messages on macOS
 #include "camera.h"
+#include "dungeon.h"
 #include "utils/sceneparser.h"
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
@@ -22,7 +23,7 @@ public:
     void finish();                                      // Called on program exit
     void sceneChanged();
     void settingsChanged();
-    void saveViewportImage(std::string filePath);
+    void generateDungeon();
 
 public slots:
     void tick(QTimerEvent* event);                      // Called once per tick of m_timer
@@ -53,6 +54,8 @@ private:
     GLuint m_fullscreen_vbo;
     GLuint m_fullscreen_vao;
     GLuint m_texture_shader;
+
+    Dungeon dungeon;
 
     void paintTexture(GLuint texture, bool doPostProcess);
 

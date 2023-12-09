@@ -9,6 +9,7 @@ struct Settings {
     int shapeParameter2 = 1;
     float nearPlane = 1;
     float farPlane = 1;
+    int size = 5;
     bool perPixelFilter = false;
     bool kernelBasedFilter = false;
     bool extraCredit1 = false;

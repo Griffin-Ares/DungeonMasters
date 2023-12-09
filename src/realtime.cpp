@@ -174,10 +174,14 @@ void Realtime::initializeGL() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-
     makeFBO();
 
     initializedRun = true;
+}
+
+void Realtime::generateDungeon() {
+    dungeon.destroyRooms();
+    dungeon.generateRooms(settings.size * 2 + 5, settings.size * 2 + 5, settings.size);
 }
 
 void Realtime::bindVbo(PrimitiveType shapeType, GLuint vbo) {
@@ -256,6 +260,7 @@ void Realtime::paintGL() {
 
     Realtime::initializeLightingData();
 
+    /*
     for (const auto& shape : renderData.shapes) {
         // update model matrix and other uniforms specific to this shape
         glm::mat4 model = shape.ctm;
@@ -290,7 +295,46 @@ void Realtime::paintGL() {
         // draw
         glDrawArrays(GL_TRIANGLES, 0, vertexCount[shape.primitive.type]);
 
+    }*/
+
+    // draw dungeon rooms
+    for (const auto& room : dungeon.getRooms()) {
+        // Draw each component of the room
+        for (const auto& component : room.walls) {
+            glm::mat4 model = component.ctm;
+
+            glBindBuffer(GL_ARRAY_BUFFER, shapeTypeVBOs[component.primitive.type]);
+
+            glBindVertexArray(m_vao);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), reinterpret_cast<void*>(0));
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), reinterpret_cast<void*>(3 * sizeof(GL_FLOAT)));
+
+            GLint modelMatrixLoc = glGetUniformLocation(m_shader, "modelMatrix");
+            glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, &model[0][0]);
+
+            glm::mat3 invTranspose = glm::mat3(glm::transpose(glm::inverse(model)));
+            GLint inverseTransposeLoc = glGetUniformLocation(m_shader, "inverseTranspose");
+            glUniformMatrix3fv(inverseTransposeLoc, 1, GL_FALSE, &invTranspose[0][0]);
+
+            GLint ambientLoc = glGetUniformLocation(m_shader, "matAmbient");
+            glUniform4fv(ambientLoc, 1, &component.primitive.material.cAmbient[0]);
+
+            GLint diffuseLoc = glGetUniformLocation(m_shader, "matDiffuse");
+            glUniform4fv(diffuseLoc, 1, &component.primitive.material.cDiffuse[0]);
+
+            GLint specularLoc = glGetUniformLocation(m_shader, "matSpecular");
+            glUniform4fv(specularLoc, 1, &component.primitive.material.cSpecular[0]);
+
+            GLint shinyLoc = glGetUniformLocation(m_shader, "shininess");
+            glUniform1f(shinyLoc, component.primitive.material.shininess);
+
+            // draw
+            glDrawArrays(GL_TRIANGLES, 0, vertexCount[component.primitive.type]);
+        }
     }
+
 
     glBindFramebuffer(GL_FRAMEBUFFER, m_defaultFBO);
     glViewport(0, 0, m_screen_width * this->devicePixelRatio(), m_screen_height * this->devicePixelRatio());
@@ -518,68 +562,4 @@ void Realtime::timerEvent(QTimerEvent *event) {
     }
 
     update(); // asks for a PaintGL() call to occur
-}
-
-// DO NOT EDIT
-void Realtime::saveViewportImage(std::string filePath) {
-    // Make sure we have the right context and everything has been drawn
-    makeCurrent();
-
-    int fixedWidth = 1024;
-    int fixedHeight = 768;
-
-    // Create Frame Buffer
-    GLuint fbo;
-    glGenFramebuffers(1, &fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-    // Create a color attachment texture
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, fixedWidth, fixedHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-
-    // Optional: Create a depth buffer if your rendering uses depth testing
-    GLuint rbo;
-    glGenRenderbuffers(1, &rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, fixedWidth, fixedHeight);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        std::cerr << "Error: Framebuffer is not complete!" << std::endl;
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        return;
-    }
-
-    // Render to the FBO
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-    glViewport(0, 0, fixedWidth, fixedHeight);
-
-    // Clear and render your scene here
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    paintGL();
-
-    // Read pixels from framebuffer
-    std::vector<unsigned char> pixels(fixedWidth * fixedHeight * 3);
-    glReadPixels(0, 0, fixedWidth, fixedHeight, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
-
-    // Unbind the framebuffer to return to default rendering to the screen
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // Convert to QImage
-    QImage image(pixels.data(), fixedWidth, fixedHeight, QImage::Format_RGB888);
-    QImage flippedImage = image.mirrored(); // Flip the image vertically
-
-    // Save to file using Qt
-    QString qFilePath = QString::fromStdString(filePath);
-    if (!flippedImage.save(qFilePath)) {
-        std::cerr << "Failed to save image to " << filePath << std::endl;
-    }
-
-    // Clean up
-    glDeleteTextures(1, &texture);
-    glDeleteRenderbuffers(1, &rbo);
-    glDeleteFramebuffers(1, &fbo);
 }

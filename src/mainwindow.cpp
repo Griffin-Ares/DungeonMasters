@@ -62,13 +62,15 @@ void MainWindow::initialize() {
     uploadFile->setText(QStringLiteral("Upload Scene File"));
     
     saveImage = new QPushButton();
-    saveImage->setText(QStringLiteral("Save image"));
+    saveImage->setText(QStringLiteral("Generate maze"));
 
     // Creates the boxes containing the parameter sliders and number boxes
     QGroupBox *p1Layout = new QGroupBox(); // horizonal slider 1 alignment
     QHBoxLayout *l1 = new QHBoxLayout();
     QGroupBox *p2Layout = new QGroupBox(); // horizonal slider 2 alignment
     QHBoxLayout *l2 = new QHBoxLayout();
+    QGroupBox *sizeLayout = new QGroupBox(); // horizonal slider 2 alignment
+    QHBoxLayout *lsize = new QHBoxLayout();
 
     // Create slider controls to control parameters
     p1Slider = new QSlider(Qt::Orientation::Horizontal); // Parameter 1 slider
@@ -95,6 +97,18 @@ void MainWindow::initialize() {
     p2Box->setSingleStep(1);
     p2Box->setValue(1);
 
+    sizeSlider = new QSlider(Qt::Orientation::Horizontal); // Size slider
+    sizeSlider->setTickInterval(1);
+    sizeSlider->setMinimum(1);
+    sizeSlider->setMaximum(25);
+    sizeSlider->setValue(1);
+
+    sizeBox = new QSpinBox();
+    sizeBox->setMinimum(1);
+    sizeBox->setMaximum(25);
+    sizeBox->setSingleStep(1);
+    sizeBox->setValue(1);
+
     // Adds the slider and number box to the parameter layouts
     l1->addWidget(p1Slider);
     l1->addWidget(p1Box);
@@ -103,6 +117,10 @@ void MainWindow::initialize() {
     l2->addWidget(p2Slider);
     l2->addWidget(p2Box);
     p2Layout->setLayout(l2);
+
+    lsize->addWidget(sizeSlider);
+    lsize->addWidget(sizeBox);
+    sizeLayout->setLayout(lsize);
 
     // Creates the boxes containing the camera sliders and number boxes
     QGroupBox *nearLayout = new QGroupBox(); // horizonal near slider alignment
@@ -131,9 +149,9 @@ void MainWindow::initialize() {
 
     farBox = new QDoubleSpinBox();
     farBox->setMinimum(10.f);
-    farBox->setMaximum(100.f);
+    farBox->setMaximum(500.f);
     farBox->setSingleStep(0.1f);
-    farBox->setValue(100.f);
+    farBox->setValue(500.f);
 
     // Adds the slider and number box to the parameter layouts
     lnear->addWidget(nearSlider);
@@ -168,6 +186,7 @@ void MainWindow::initialize() {
     vLayout->addWidget(p1Layout);
     vLayout->addWidget(param2_label);
     vLayout->addWidget(p2Layout);
+    vLayout->addWidget(sizeLayout);
     vLayout->addWidget(camera_label);
     vLayout->addWidget(near_label);
     vLayout->addWidget(nearLayout);
@@ -188,10 +207,11 @@ void MainWindow::initialize() {
     // Set default values of 5 for tesselation parameters
     onValChangeP1(5);
     onValChangeP2(5);
+    onValChangeSize(5);
 
     // Set default values for near and far planes
     onValChangeNearBox(0.1f);
-    onValChangeFarBox(10.f);
+    onValChangeFarBox(100.f);
 }
 
 void MainWindow::finish() {
@@ -206,6 +226,7 @@ void MainWindow::connectUIElements() {
     connectSaveImage();
     connectParam1();
     connectParam2();
+    connectSize();
     connectNear();
     connectFar();
     connectExtraCredit();
@@ -237,6 +258,12 @@ void MainWindow::connectParam2() {
     connect(p2Slider, &QSlider::valueChanged, this, &MainWindow::onValChangeP2);
     connect(p2Box, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged),
             this, &MainWindow::onValChangeP2);
+}
+
+void MainWindow::connectSize() {
+    connect(sizeSlider, &QSlider::valueChanged, this, &MainWindow::onValChangeSize);
+    connect(sizeBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+            this, &MainWindow::onValChangeSize);
 }
 
 void MainWindow::connectNear() {
@@ -291,6 +318,7 @@ void MainWindow::onUploadFile() {
 }
 
 void MainWindow::onSaveImage() {
+    /*
     if (settings.sceneFilePath.empty()) {
         std::cout << "No scene file loaded." << std::endl;
         return;
@@ -307,8 +335,8 @@ void MainWindow::onSaveImage() {
                                                         .append("required")
                                                         .append(QDir::separator())
                                                         .append(sceneName), tr("Image Files (*.png)"));
-    std::cout << "Saving image to: \"" << filePath.toStdString() << "\"." << std::endl;
-    realtime->saveViewportImage(filePath.toStdString());
+    std::cout << "Saving image to: \"" << filePath.toStdString() << "\"." << std::endl;*/
+    realtime->generateDungeon();
 }
 
 void MainWindow::onValChangeP1(int newValue) {
@@ -322,6 +350,13 @@ void MainWindow::onValChangeP2(int newValue) {
     p2Slider->setValue(newValue);
     p2Box->setValue(newValue);
     settings.shapeParameter2 = p2Slider->value();
+    realtime->settingsChanged();
+}
+
+void MainWindow::onValChangeSize(int newValue) {
+    sizeSlider->setValue(newValue);
+    sizeBox->setValue(newValue);
+    settings.size = sizeSlider->value();
     realtime->settingsChanged();
 }
 
