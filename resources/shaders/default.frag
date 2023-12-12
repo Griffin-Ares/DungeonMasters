@@ -40,7 +40,7 @@ uniform vec4 matSpecular;
 uniform sampler2D brickMap;
 uniform sampler2D floorMap;
 uniform int isTextured; // true if == 1, false otherwise
-mat3 posX; mat3 negX; mat3 posZ; mat3 negZ; mat3 posY; // TBNs
+mat3 posX; mat3 negX; mat3 posZ; mat3 negZ; mat3 posY; // TBN matrices
 
 /* naming is a little confusing, so just to clarify: these two functions return colors that
   will represent normals after being mapped from color range [0, 1] to normal range [-1, 1]
@@ -66,14 +66,13 @@ vec3 applyNormalMapping() {
     vec3 sampledNormal;
     // if normal is pointing up or down, use concrete floor map
     if (dot(normal, vec3(0, 1, 0)) > 0.999 || dot(normal, vec3(0, -1, 0)) > 0.999) {
-        fragColor = vec3(103, 99, 100); // brownish grey for floor
+        fragColor = vec3(.402, .387, .391); // brownish grey for floor
         sampledNormal = sampleFloorColor();
         newNormal = 2 * sampledNormal - vec3(1.f); // maps from color range to normal range
         newNormal = posY * newNormal; // bring normal from normal map space into world space
     // otherwise, use brick wall map
     } else {
-        fragColor = vec3(137, 120, 102); // reddish brown for bricks
-        vec3 sampledNormal;
+        fragColor = vec3(.535, .469, .398); // reddish brown for bricks
         // sample normal from map, convert from [0, 1] to [-1, 1], and transform into world space
         if (dot(normal, vec3(1, 0, 0)) > 0.999) { // wall facing positive x direction
             sampledNormal = sampleBrickColor(worldSpacePos.z, worldSpacePos.y);
@@ -103,18 +102,18 @@ void main() {
     // Remember that you need to renormalize vectors here if you want them to be normalized
 
     /* comment out below stuff when ready to turn on normal mapping */
-    fragColor = vec3(k_a) * matAmbient.xyz;
-    vec3 norm = normalize(normal);
+//    fragColor = vec3(k_a) * matAmbient.xyz;
+//    vec3 norm = normalize(normal);
     /* uncomment below stuff when ready to turn on normal mapping */
-//        vec3 norm;
-//        if (isTextured == 1) {
-//            norm = applyNormalMapping();
-//            // fragColor is adjusted within applyNormalMapping()
-//        } else {
-//            norm = normalize(normal);
-//            fragColor = matAmbient.xyz;
-//        }
-//    fragColor = vec3(k_a) * fragColor;
+        vec3 norm;
+        if (isTextured == 1) {
+            norm = applyNormalMapping();
+            // fragColor is adjusted within applyNormalMapping()
+        } else {
+            norm = normalize(normal);
+            fragColor = matAmbient.xyz;
+        }
+    fragColor = vec3(k_a) * fragColor;
 
     //vec3 lightDir = normalize(lightPos.xyz - worldSpacePos);
     for (int i = 0; i < lightCount; ++i) {
