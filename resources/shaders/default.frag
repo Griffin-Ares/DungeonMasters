@@ -69,29 +69,28 @@ vec3 applyNormalMapping() {
         fragColor = vec3(103, 99, 100); // brownish grey for floor
         sampledNormal = sampleFloorColor();
         newNormal = 2 * sampledNormal - vec3(1.f); // maps from color range to normal range
-        newNormal = posY * normal; // bring normal from normal map space into world space
+        newNormal = posY * newNormal; // bring normal from normal map space into world space
     // otherwise, use brick wall map
     } else {
         fragColor = vec3(137, 120, 102); // reddish brown for bricks
         vec3 sampledNormal;
-
         // sample normal from map, convert from [0, 1] to [-1, 1], and transform into world space
         if (dot(normal, vec3(1, 0, 0)) > 0.999) { // wall facing positive x direction
             sampledNormal = sampleBrickColor(worldSpacePos.z, worldSpacePos.y);
             newNormal = 2 * sampledNormal - vec3(1.f);
-            newNormal = posX * normal;
+            newNormal = posX * newNormal;
         } else if (dot(normal, vec3(-1, 0, 0)) > 0.999) { // wall facing negative x direction
             sampledNormal = sampleBrickColor(-worldSpacePos.z, worldSpacePos.y);
             newNormal = 2 * sampledNormal - vec3(1.f);
-            newNormal = negX * normal;
+            newNormal = negX * newNormal;
         } else if (dot(normal, vec3(0, 0, 1)) > 0.999) { // wall facing positive z direction
             sampledNormal = sampleBrickColor(-worldSpacePos.x, worldSpacePos.y);
             newNormal = 2 * sampledNormal - vec3(1.f);
-            newNormal = posZ * normal;
+            newNormal = posZ * newNormal;
         } else if (dot(normal, vec3(0, 0, -1)) > 0.999) { // wall facing negative z direction
             sampledNormal = sampleBrickColor(worldSpacePos.x, worldSpacePos.y);
             newNormal = 2 * sampledNormal - vec3(1.f);
-            newNormal = negZ * normal;
+            newNormal = negZ * newNormal;
         } else {
             newNormal = normal;
         }
@@ -104,19 +103,18 @@ void main() {
     // Remember that you need to renormalize vectors here if you want them to be normalized
 
     /* comment out below stuff when ready to turn on normal mapping */
-    fragColor = vec3(k_a) * matAmbient.xyz;
-    vec3 norm = normalize(normal);
+//    fragColor = vec3(k_a) * matAmbient.xyz;
+//    vec3 norm = normalize(normal);
     /* uncomment below stuff when ready to turn on normal mapping */
-//        vec3 norm;
-//        if (isTextured == 1) {
-//            norm = applyNormalMapping();
-//            // fragColor is adjusted within applyNormalMapping()
-//        } else {
-//            norm = normalize(normal);
-//            fragColor = matAmbient.xyz;
-//        }
-//    fragColor = vec3(k_a) * fragColor;
-
+        vec3 norm;
+        if (isTextured == 1) {
+            norm = applyNormalMapping();
+            // fragColor is adjusted within applyNormalMapping()
+        } else {
+            norm = normalize(normal);
+            fragColor = matAmbient.xyz;
+        }
+    fragColor = vec3(k_a) * fragColor;
 
     //vec3 lightDir = normalize(lightPos.xyz - worldSpacePos);
     for (int i = 0; i < lightCount; ++i) {
