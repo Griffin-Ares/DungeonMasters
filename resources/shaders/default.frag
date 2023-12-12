@@ -103,18 +103,18 @@ void main() {
     // Remember that you need to renormalize vectors here if you want them to be normalized
 
     /* comment out below stuff when ready to turn on normal mapping */
-//    fragColor = vec3(k_a) * matAmbient.xyz;
-//    vec3 norm = normalize(normal);
+    fragColor = vec3(k_a) * matAmbient.xyz;
+    vec3 norm = normalize(normal);
     /* uncomment below stuff when ready to turn on normal mapping */
-        vec3 norm;
-        if (isTextured == 1) {
-            norm = applyNormalMapping();
-            // fragColor is adjusted within applyNormalMapping()
-        } else {
-            norm = normalize(normal);
-            fragColor = matAmbient.xyz;
-        }
-    fragColor = vec3(k_a) * fragColor;
+//        vec3 norm;
+//        if (isTextured == 1) {
+//            norm = applyNormalMapping();
+//            // fragColor is adjusted within applyNormalMapping()
+//        } else {
+//            norm = normalize(normal);
+//            fragColor = matAmbient.xyz;
+//        }
+//    fragColor = vec3(k_a) * fragColor;
 
     //vec3 lightDir = normalize(lightPos.xyz - worldSpacePos);
     for (int i = 0; i < lightCount; ++i) {
