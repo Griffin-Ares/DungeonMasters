@@ -62,9 +62,9 @@ vec3 sampleFloorColor() {
 };
 
 vec3 applyNormalMapping() {
-    // if normal is pointing up or down, use concrete floor map
     vec3 newNormal;
     vec3 sampledNormal;
+    // if normal is pointing up or down, use concrete floor map
     if (dot(normal, vec3(0, 1, 0)) > 0.999 || dot(normal, vec3(0, -1, 0)) > 0.999) {
         fragColor = vec3(103, 99, 100); // brownish grey for floor
         sampledNormal = sampleFloorColor();

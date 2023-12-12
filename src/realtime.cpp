@@ -142,6 +142,7 @@ void Realtime::initializeGL() {
 
     // NORMAL MAPPING STUFF STARTS
     // TEXTURES
+    glUseProgram(m_shader);
     // load brick texture
     QString brick_filepath = QString(":/resources/brickfinal.jpg"); // prepare filepath
     m_brick_image = QImage(brick_filepath); // obtain image from filepath
@@ -153,28 +154,24 @@ void Realtime::initializeGL() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // set min and mag filters' interpolation mode to linear
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glBindTexture(GL_TEXTURE_2D, 0); // unbind brick texture
-    // set the texture.frag uniform for brick texture
-    glUseProgram(m_shader);
+    // set the default.frag uniform for brick texture
     GLuint brickTexLocation = glGetUniformLocation(m_shader, "brickMap");
     glUniform1i(brickTexLocation, GL_TEXTURE0);
-    glUseProgram(0);
 
     // load floor texture
     QString floor_filepath = QString(":/resources/floorfinal.png"); // prepare filepath
     m_floor_image = QImage(floor_filepath); // obtain image from filepath
     m_floor_image = m_floor_image.convertToFormat(QImage::Format_RGBA8888).mirrored(); // format image to fit OpenGL
     glGenTextures(1, &m_floor_texture); // generate floor texture
-    glActiveTexture(GL_TEXTURE1); // set the active texture slot to texture slot 0
+    glActiveTexture(GL_TEXTURE1); // set the active texture slot to texture slot 1
     glBindTexture(GL_TEXTURE_2D, m_floor_texture); // bind floor texture
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_floor_image.width(), m_floor_image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, m_floor_image.bits()); // load image into floor texture
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // set min and mag filters' interpolation mode to linear
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glBindTexture(GL_TEXTURE_2D, 0); // unbind floor texture
-    // set the texture.frag uniform for floor texture
-    glUseProgram(m_shader);
+    // set the default.frag uniform for floor texture
     GLuint floorTexLocation = glGetUniformLocation(m_shader, "floorMap");
     glUniform1i(floorTexLocation, GL_TEXTURE1);
-    glUseProgram(0);
 
     glActiveTexture(GL_TEXTURE0);
 
@@ -182,7 +179,6 @@ void Realtime::initializeGL() {
     // TODO implement! create button and attach functionality to that
     // might have to move to paintGL() ??
     int isTexturedBool = 1;  // 1 for true, 0 for false. currently hardcoded to true
-    glUseProgram(m_shader);
     glUniform1i(glGetUniformLocation(m_shader, "isTextured"), isTexturedBool);
 
     // TBN matrices
@@ -223,6 +219,7 @@ void Realtime::initializeGL() {
     glUniformMatrix3fv(matrixLocation4, 1, GL_FALSE, &negativeZ[0][0]);
     GLint matrixLocation5 = glGetUniformLocation(m_shader, "posY");
     glUniformMatrix3fv(matrixLocation5, 1, GL_FALSE, &positiveY[0][0]);
+    glUseProgram(0);
     // NORMAL MAPPING STUFF ENDS
 
 
@@ -426,7 +423,7 @@ void Realtime::paintGL() {
     glViewport(0, 0, m_screen_width * this->devicePixelRatio(), m_screen_height * this->devicePixelRatio());
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    paintTexture(m_fbo_texture, true);
+    paintTexture(m_fbo_texture, true); // UNCOMMENT
 
     // Unbind VAO and shaders
     glBindVertexArray(0);
