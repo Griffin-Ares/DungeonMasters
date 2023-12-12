@@ -140,6 +140,92 @@ void Realtime::initializeGL() {
     GLint textureUniform = glGetUniformLocation(m_texture_shader, "texture");  // Replace with your actual uniform name
     glUniform1i(textureUniform, 0);
 
+    // NORMAL MAPPING STUFF STARTS
+    // TEXTURES
+    // load brick texture
+    QString brick_filepath = QString(":/resources/brickfinal.jpg"); // prepare filepath
+    m_brick_image = QImage(brick_filepath); // obtain image from filepath
+    m_brick_image = m_brick_image.convertToFormat(QImage::Format_RGBA8888).mirrored(); // format image to fit OpenGL
+    glGenTextures(1, &m_brick_texture); // generate brick texture
+    glActiveTexture(GL_TEXTURE0); // set the active texture slot to texture slot 0
+    glBindTexture(GL_TEXTURE_2D, m_brick_texture); // bind brick texture
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_brick_image.width(), m_brick_image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, m_brick_image.bits()); // load image into brick texture
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // set min and mag filters' interpolation mode to linear
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0); // unbind brick texture
+    // set the texture.frag uniform for brick texture
+    glUseProgram(m_shader);
+    GLuint brickTexLocation = glGetUniformLocation(m_shader, "brickMap");
+    glUniform1i(brickTexLocation, GL_TEXTURE0);
+    glUseProgram(0);
+
+    // load floor texture
+    QString floor_filepath = QString(":/resources/floorfinal.png"); // prepare filepath
+    m_floor_image = QImage(floor_filepath); // obtain image from filepath
+    m_floor_image = m_floor_image.convertToFormat(QImage::Format_RGBA8888).mirrored(); // format image to fit OpenGL
+    glGenTextures(1, &m_floor_texture); // generate floor texture
+    glActiveTexture(GL_TEXTURE1); // set the active texture slot to texture slot 0
+    glBindTexture(GL_TEXTURE_2D, m_floor_texture); // bind floor texture
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_floor_image.width(), m_floor_image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, m_floor_image.bits()); // load image into floor texture
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // set min and mag filters' interpolation mode to linear
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0); // unbind floor texture
+    // set the texture.frag uniform for floor texture
+    glUseProgram(m_shader);
+    GLuint floorTexLocation = glGetUniformLocation(m_shader, "floorMap");
+    glUniform1i(floorTexLocation, GL_TEXTURE1);
+    glUseProgram(0);
+
+    glActiveTexture(GL_TEXTURE0);
+
+    // toggling texture on and off
+    // TODO implement! create button and attach functionality to that
+    // might have to move to paintGL() ??
+    int isTexturedBool = 1;  // 1 for true, 0 for false. currently hardcoded to true
+    glUseProgram(m_shader);
+    glUniform1i(glGetUniformLocation(m_shader, "isTextured"), isTexturedBool);
+
+    // TBN matrices
+    float positiveX[3][3] = {
+        {0.0, 0.0, 1.0},
+        {0.0, 1.0, 0.0},
+        {1.0, 0.0, 0.0}
+    };
+    float negativeX[3][3] = {
+        {0.0, 0.0, -1.0},
+        {0.0, 1.0, 0.0},
+        {-1.0, 0.0, 0.0}
+    };
+    float positiveZ[3][3] = {
+        {-1.0, 0.0, 0.0},
+        {0.0, 1.0, 0.0},
+        {0.0, 0.0, 1.0}
+    };
+    float negativeZ[3][3] = {
+        {1.0, 0.0, 0.0},
+        {0.0, 1.0, 0.0},
+        {0.0, 0.0, -1.0}
+    };
+    float positiveY[3][3] = {
+        {1.0, 0.0, 0.0},
+        {0.0, 0.0, 1.0},
+        {0.0, 1.0, 0.0}
+    };
+    // TODO implement negative y so underside of dungeon has texture
+    // but that's a little annoying idk maybe not
+    GLint matrixLocation1 = glGetUniformLocation(m_shader, "posX");
+    glUniformMatrix3fv(matrixLocation1, 1, GL_FALSE, &positiveX[0][0]);
+    GLint matrixLocation2 = glGetUniformLocation(m_shader, "negX");
+    glUniformMatrix3fv(matrixLocation2, 1, GL_FALSE, &negativeX[0][0]);
+    GLint matrixLocation3 = glGetUniformLocation(m_shader, "posZ");
+    glUniformMatrix3fv(matrixLocation3, 1, GL_FALSE, &positiveZ[0][0]);
+    GLint matrixLocation4 = glGetUniformLocation(m_shader, "negZ");
+    glUniformMatrix3fv(matrixLocation4, 1, GL_FALSE, &negativeZ[0][0]);
+    GLint matrixLocation5 = glGetUniformLocation(m_shader, "posY");
+    glUniformMatrix3fv(matrixLocation5, 1, GL_FALSE, &positiveY[0][0]);
+    // NORMAL MAPPING STUFF ENDS
+
+
     // FBO stuff
     std::vector<GLfloat> fullscreen_quad_data =
     { //     POSITIONS    //

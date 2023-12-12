@@ -55,6 +55,12 @@ private:
     GLuint m_fullscreen_vao;
     GLuint m_texture_shader;
 
+    // normal mapping
+    QImage m_brick_image;
+    QImage m_floor_image;
+    GLuint m_brick_texture;
+    GLuint m_floor_texture;
+
     Dungeon dungeon;
 
     void paintTexture(GLuint texture, bool doPostProcess);
