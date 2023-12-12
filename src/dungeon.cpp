@@ -85,7 +85,6 @@ std::vector<glm::vec2> reconstructPath(Node* current) {
         path.push_back(vertex);
         current = current->parent;
     }
-    //reverse(path.begin(), path.end());
     return path;
 }
 
@@ -117,7 +116,7 @@ std::vector<glm::vec2> aStarSearch(std::vector<std::vector<Room>>& grid, glm::ve
         for (int dx = -1; dx <= 1; dx++) {
             for (int dy = -1; dy <= 1; dy++) {
                 if (dx == 0 && dy == 0) continue;
-                // Limit movement to non-diagonal neighbors
+                // limit movement to non-diagonal neighbors to keep hallways continuous/traversable
                 if (dx != 0 && dy != 0) continue;
                 Point neighbor(current->point.x + dx, current->point.y + dy);
 
@@ -134,14 +133,14 @@ std::vector<glm::vec2> aStarSearch(std::vector<std::vector<Room>>& grid, glm::ve
             }
         }
 
-        if (cameFrom.find(current->point) == cameFrom.end()) {
-            delete current;
-        }
+        //if (cameFrom.find(current->point) == cameFrom.end()) {
+        //    delete current;
+        //}
     }
 
-    for (auto& pair : cameFrom) {
-        delete pair.second;
-    }
+    //for (auto& pair : cameFrom) {
+    //    delete pair.second;
+    //}
 
     return std::vector<glm::vec2>();
 }
@@ -155,10 +154,13 @@ void Dungeon::generatePlan(int width, int length, int size) {
 
     // dungeonmasters algorithm
     // 1: place rooms. Cannot be adjacent.
-    // 2: create Delaunay Triangulation
-    // 3: find minimum spanning tree
-    // 4: choose random edges (edgeKeepChance)
-    // 5: pathfind hallways with A*
+    // 2: find minimum spanning tree
+    // 3: choose random edges (edgeKeepChance)
+    // 4: pathfind hallways with A*
+
+    // generate random names
+    // lighting
+    // post processing
 
     int roomCount = size;
     std::vector<glm::vec2> vertices;
