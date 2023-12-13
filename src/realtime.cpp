@@ -119,11 +119,16 @@ void Realtime::initializeGL() {
     // setup VAO
     glGenVertexArrays(1, &m_vao);
     glBindVertexArray(m_vao);
+
     // Set up vertex attribute pointers
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), reinterpret_cast<void*>(0));
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), reinterpret_cast<void*>(3 * sizeof(GL_FLOAT)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), reinterpret_cast<void*>(3 * sizeof(GL_FLOAT))); // ERROR HERE!! invalid operation
+    GLenum error1 = glGetError();
+    if (error1 != GL_NO_ERROR) {
+        std::cerr << "OpenGL Error 1: " << gluErrorString(error1) << std::endl;
+    }
 
     shapeTypeVBOs[PrimitiveType::PRIMITIVE_SPHERE] = 0;
     shapeTypeVBOs[PrimitiveType::PRIMITIVE_CUBE] = 0;
@@ -136,10 +141,6 @@ void Realtime::initializeGL() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0); // 1 vao for each vbo efficiency
 
-    glUseProgram(m_texture_shader);  // Use the texture shader program
-    GLint textureUniform = glGetUniformLocation(m_texture_shader, "texture");  // Replace with your actual uniform name
-    glUniform1i(textureUniform, 0);
-
     // NORMAL MAPPING STUFF STARTS
     // TEXTURES
     glUseProgram(m_shader);
@@ -149,14 +150,14 @@ void Realtime::initializeGL() {
     m_brick_image = m_brick_image.convertToFormat(QImage::Format_RGBA8888).mirrored(); // format image to fit OpenGL
     glGenTextures(1, &m_brick_texture); // generate brick texture
     glActiveTexture(GL_TEXTURE0); // set the active texture slot to texture slot 0
-    glBindTexture(GL_TEXTURE_2D, m_brick_texture); // bind brick texture
+    glBindTexture(GL_TEXTURE_2D, m_brick_texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_brick_image.width(), m_brick_image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, m_brick_image.bits()); // load image into brick texture
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // set min and mag filters' interpolation mode to linear
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glBindTexture(GL_TEXTURE_2D, 0); // unbind brick texture
     // set the default.frag uniform for brick texture
     GLuint brickTexLocation = glGetUniformLocation(m_shader, "brickMap");
-    glUniform1i(brickTexLocation, GL_TEXTURE0);
+    glUniform1i(brickTexLocation, 0); // formerly error here; invalud error for GL_TEXTURE0
 
     // load floor texture
     QString floor_filepath = QString(":/resources/floorfinal.png"); // prepare filepath
@@ -171,10 +172,9 @@ void Realtime::initializeGL() {
     glBindTexture(GL_TEXTURE_2D, 0); // unbind floor texture
     // set the default.frag uniform for floor texture
     GLuint floorTexLocation = glGetUniformLocation(m_shader, "floorMap");
-    glUniform1i(floorTexLocation, GL_TEXTURE1);
+    glUniform1i(floorTexLocation, 1); // formerly error here; invalid error for GL_TEXTURE0
 
     glActiveTexture(GL_TEXTURE0);
-
     toggleTexture = false;
 
     // TBN matrices
@@ -218,6 +218,9 @@ void Realtime::initializeGL() {
     glUseProgram(0);
     // NORMAL MAPPING STUFF ENDS
 
+//    glUseProgram(m_texture_shader);  // Use the texture shader program UNCOMMENT
+//    GLint textureUniform = glGetUniformLocation(m_texture_shader, "texture");  // Replace with your actual uniform name
+//    glUniform1i(textureUniform, 0);
 
     // FBO stuff
     std::vector<GLfloat> fullscreen_quad_data =
@@ -329,7 +332,7 @@ void Realtime::paintGL() {
 
     // Students: anything requiring OpenGL calls every frame should be done here
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(m_shader);
+   // glUseProgram(m_shader); // uncomment
 
     // camera stuff, update every paintGL to prepare for movement in Action
     glm::mat4 view = cam.getViewMatrix();
