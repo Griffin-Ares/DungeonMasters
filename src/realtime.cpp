@@ -153,6 +153,7 @@ void Realtime::initializeGL() {
     glActiveTexture(GL_TEXTURE0); // set the active texture slot to texture slot 0
     glBindTexture(GL_TEXTURE_2D, m_brick_texture); // bind brick texture
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_brick_image.width(), m_brick_image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, m_brick_image.bits()); // load image into brick texture
+    glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // set min and mag filters' interpolation mode to linear
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glBindTexture(GL_TEXTURE_2D, 0); // unbind brick texture
@@ -168,6 +169,7 @@ void Realtime::initializeGL() {
     glActiveTexture(GL_TEXTURE1); // set the active texture slot to texture slot 1
     glBindTexture(GL_TEXTURE_2D, m_floor_texture); // bind floor texture
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_floor_image.width(), m_floor_image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, m_floor_image.bits()); // load image into floor texture
+    glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // set min and mag filters' interpolation mode to linear
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glBindTexture(GL_TEXTURE_2D, 0); // unbind floor texture
@@ -203,8 +205,6 @@ void Realtime::initializeGL() {
         {0.0, 0.0, 1.0},
         {0.0, 1.0, 0.0}
     };
-    // TODO implement negative y so underside of dungeon has texture
-    // but that's a little annoying idk maybe not
     GLint matrixLocation1 = glGetUniformLocation(m_shader, "posX");
     glUniformMatrix3fv(matrixLocation1, 1, GL_FALSE, &positiveX[0][0]);
     GLint matrixLocation2 = glGetUniformLocation(m_shader, "negX");
@@ -215,10 +215,10 @@ void Realtime::initializeGL() {
     glUniformMatrix3fv(matrixLocation4, 1, GL_FALSE, &negativeZ[0][0]);
     GLint matrixLocation5 = glGetUniformLocation(m_shader, "posY");
     glUniformMatrix3fv(matrixLocation5, 1, GL_FALSE, &positiveY[0][0]);
-    //glUseProgram(0); uncomment
+    //glUseProgram(0);
     // NORMAL MAPPING STUFF ENDS
 
-//    glUseProgram(m_texture_shader);  // Use the texture shader program UNCOMMENT
+//    glUseProgram(m_texture_shader);  // Use the texture shader program
 //    GLint textureUniform = glGetUniformLocation(m_texture_shader, "texture");  // Replace with your actual uniform name
 //    glUniform1i(textureUniform, 0);
 
@@ -332,7 +332,7 @@ void Realtime::paintGL() {
 
     // Students: anything requiring OpenGL calls every frame should be done here
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(m_shader); // uncomment
+    glUseProgram(m_shader);
 
     // camera stuff, update every paintGL to prepare for movement in Action
     glm::mat4 view = cam.getViewMatrix();
@@ -439,7 +439,7 @@ void Realtime::paintGL() {
     glViewport(0, 0, m_screen_width * this->devicePixelRatio(), m_screen_height * this->devicePixelRatio());
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    paintTexture(m_fbo_texture, true); // UNCOMMENT
+    paintTexture(m_fbo_texture, true);
 
     // Unbind VAO, textures, and shaders
     glBindVertexArray(0);

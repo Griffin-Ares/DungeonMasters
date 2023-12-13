@@ -70,7 +70,7 @@ void Room::generateWalls(glm::vec4 state) {
         //wall.primitive.material.cDiffuse = colors[i];
         wall.primitive.material.cDiffuse = glm::vec4(.535, .469, .398, 1.f);
         wall.primitive.material.cSpecular = glm::vec4(1.0f);
-        wall.primitive.material.shininess = 25.f;
+        wall.primitive.material.shininess = 15.f; // TOFIX
 
         wall.primitive.type = PrimitiveType::PRIMITIVE_CUBE;
         wall.ctm = wallCTM;

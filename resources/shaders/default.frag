@@ -36,9 +36,9 @@ uniform vec4 matAmbient;
 uniform vec4 matDiffuse;
 uniform vec4 matSpecular;
 
-// TODO: fix lighting
 
 // NORMAL MAPPING :D
+// TODO: mipmapping, fix floor
 uniform sampler2D brickMap;
 uniform sampler2D floorMap;
 uniform int isTextured; // true if == 1, false otherwise
@@ -49,22 +49,44 @@ uniform mat3 negZ;
 uniform mat3 posY;
 vec3 newNormal;
 
+float getLOD(float u, float v, int isBrick) {
+    vec2 texSize;
+    if (isBrick == 1) {
+        texSize = textureSize(brickMap, 0);  // Size of the base mip level
+    } else {
+        texSize = textureSize(floorMap, 0);
+    }
+
+    vec2 texelSize = 1.0 / texSize;
+
+    vec2 dx = dFdx(vec2(u, v));  // Screen-space partial derivative in X
+    vec2 dy = dFdy(vec2(u, v));  // Screen-space partial derivative in Y
+
+    // Calculate the length of the gradient in screen space
+    float gradientLength = max(length(dx), length(dy));
+
+    // Calculate the LOD based on the screen-space gradient
+    float lod = log2(gradientLength / dot(texelSize.x, texelSize.y));
+
+    return lod;
+}
+
 /* naming is a little confusing, so just to clarify: these two functions return colors that
   will represent normals after being mapped from color range [0, 1] to normal range [-1, 1]
   the actual colors of the bricks and the floor are hardcoded in applyColorAndTexture() */
 vec3 sampleBrickColor(float x, float y) {
     int intX = int(round((x/3.f) * 350));
     int intY = int(round((y/3.f) * 350));
-    float textureU = float(intX % 350) / 350.0; // TOCHECK: that 3 is the height of the walls
+    float textureU = float(intX % 350) / 350.0;
     float textureV = float(intY % 350) / 350.0;
-    return vec3(texture(brickMap, vec2(textureU, textureV)));
+    return vec3(textureLod(brickMap, vec2(textureU, textureV), getLOD(x, y, 1)));
 };
 
 vec3 sampleFloorColor() {
     int intX = int(round((worldSpacePos.x/3.f) * 350));
     int intZ = int(round((worldSpacePos.z/3.f) * 350));
     float textureU = float(intX % 350) / 350;
-    float textureV = float(intZ % 350) / 3.0;
+    float textureV = float(intZ % 350) / 350;
     return vec3(texture(floorMap, vec2(textureU, textureV)));
 };
 
@@ -75,6 +97,7 @@ vec3 applyColorAndTexture() {
     // if normal is pointing up or down, use concrete floor map
     if (dot(normalize(normal), vec3(0, 1, 0)) > 0.9 || dot(normalize(normal), vec3(0, -1, 0)) > 0.9) {
         fragColor = vec3(.4, .357, .294); // brownish grey for floor
+        //fragColor = sampleFloorColor(); // for testing
         if (isTextured == 1) {
             sampledNormal = sampleFloorColor();
             newNormal = 2 * sampledNormal - vec3(1.f); // maps from color range to normal range
@@ -112,7 +135,6 @@ vec3 applyColorAndTexture() {
 
 void main() {
     // Remember that you need to renormalize vectors here if you want them to be normalized
-
     vec3 norm = normalize(applyColorAndTexture());
     fragColor = vec3(k_a) * fragColor;
 
