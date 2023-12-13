@@ -78,6 +78,8 @@ qt6_add_resources(${PROJECT_NAME} "Resources"
         resources/shaders/default.vert
         resources/shaders/texture.frag
         resources/shaders/texture.vert
+        resources/brickfinal.jpg
+        resources/floorfinal.png
 )
 
 # GLEW: this provides support for Windows (including 64-bit)
