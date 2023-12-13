@@ -38,7 +38,7 @@ uniform vec4 matSpecular;
 
 
 // NORMAL MAPPING :D
-// TODO: mipmapping, fix floor
+// TODO: mipmapping
 uniform sampler2D brickMap;
 uniform sampler2D floorMap;
 uniform int isTextured; // true if == 1, false otherwise
@@ -49,27 +49,27 @@ uniform mat3 negZ;
 uniform mat3 posY;
 vec3 newNormal;
 
-float getLOD(float u, float v, int isBrick) {
-    vec2 texSize;
-    if (isBrick == 1) {
-        texSize = textureSize(brickMap, 0);  // Size of the base mip level
-    } else {
-        texSize = textureSize(floorMap, 0);
-    }
+//float getLOD(float u, float v, int isBrick) {
+//    vec2 texSize;
+//    if (isBrick == 1) {
+//        texSize = textureSize(brickMap, 0);  // Size of the base mip level
+//    } else {
+//        texSize = textureSize(floorMap, 0);
+//    }
 
-    vec2 texelSize = 1.0 / texSize;
+//    vec2 texelSize = 1.0 / texSize;
 
-    vec2 dx = dFdx(vec2(u, v));  // Screen-space partial derivative in X
-    vec2 dy = dFdy(vec2(u, v));  // Screen-space partial derivative in Y
+//    vec2 dx = dFdx(vec2(u, v));  // Screen-space partial derivative in X
+//    vec2 dy = dFdy(vec2(u, v));  // Screen-space partial derivative in Y
 
-    // Calculate the length of the gradient in screen space
-    float gradientLength = max(length(dx), length(dy));
+//    // Calculate the length of the gradient in screen space
+//    float gradientLength = max(length(dx), length(dy));
 
-    // Calculate the LOD based on the screen-space gradient
-    float lod = log2(gradientLength / dot(texelSize.x, texelSize.y));
+//    // Calculate the LOD based on the screen-space gradient
+//    float lod = log2(gradientLength / dot(texelSize.x, texelSize.y));
 
-    return lod;
-}
+//    return lod;
+//}
 
 /* naming is a little confusing, so just to clarify: these two functions return colors that
   will represent normals after being mapped from color range [0, 1] to normal range [-1, 1]
@@ -79,7 +79,8 @@ vec3 sampleBrickColor(float x, float y) {
     int intY = int(round((y/3.f) * 350));
     float textureU = float(intX % 350) / 350.0;
     float textureV = float(intY % 350) / 350.0;
-    return vec3(textureLod(brickMap, vec2(textureU, textureV), getLOD(x, y, 1)));
+    return vec3(texture(brickMap, vec2(textureU, textureV)));
+    //return vec3(textureLod(brickMap, vec2(textureU, textureV), getLOD(x, y, 1)));
 };
 
 vec3 sampleFloorColor() {

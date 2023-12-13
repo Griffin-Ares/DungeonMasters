@@ -154,7 +154,7 @@ void Realtime::initializeGL() {
     glBindTexture(GL_TEXTURE_2D, m_brick_texture); // bind brick texture
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_brick_image.width(), m_brick_image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, m_brick_image.bits()); // load image into brick texture
     glGenerateMipmap(GL_TEXTURE_2D);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // set min and mag filters' interpolation mode to linear
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // set min and mag filters' interpolation mode to linear
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glBindTexture(GL_TEXTURE_2D, 0); // unbind brick texture
     // set the default.frag uniform for brick texture
@@ -170,7 +170,7 @@ void Realtime::initializeGL() {
     glBindTexture(GL_TEXTURE_2D, m_floor_texture); // bind floor texture
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_floor_image.width(), m_floor_image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, m_floor_image.bits()); // load image into floor texture
     glGenerateMipmap(GL_TEXTURE_2D);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // set min and mag filters' interpolation mode to linear
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // set min and mag filters' interpolation mode to linear
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glBindTexture(GL_TEXTURE_2D, 0); // unbind floor texture
     // set the default.frag uniform for floor texture
