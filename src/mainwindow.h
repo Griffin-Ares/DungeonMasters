@@ -29,6 +29,7 @@ private:
     void connectUploadFile();
     void connectSaveImage();
     void connectExtraCredit();
+    void connectNormalMapping();
 
     Realtime *realtime;
     AspectRatioWidget *aspectRatioWidget;
@@ -46,6 +47,7 @@ private:
     QSlider *farSlider;
     QDoubleSpinBox *nearBox;
     QDoubleSpinBox *farBox;
+    QCheckBox *toggleNormalMapping;
 
     // Extra Credit:
     QCheckBox *ec1;
@@ -65,6 +67,7 @@ private slots:
     void onValChangeFarSlider(int newValue);
     void onValChangeNearBox(double newValue);
     void onValChangeFarBox(double newValue);
+    void onToggleNormalMapping();
 
     // Extra Credit:
     void onExtraCredit1();

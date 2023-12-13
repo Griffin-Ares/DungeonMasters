@@ -39,7 +39,8 @@ uniform vec4 matSpecular;
 // NORMAL MAPPING :D
 uniform sampler2D brickMap;
 uniform sampler2D floorMap;
-uniform int isTextured; // true if == 1, false otherwise
+// TODO: fix isTextured so that only the texture is affected, not color
+uniform int isTextured; // true if == 1, false otherwise.
 mat3 posX; mat3 negX; mat3 posZ; mat3 negZ; mat3 posY; // TBN matrices
 
 /* naming is a little confusing, so just to clarify: these two functions return colors that

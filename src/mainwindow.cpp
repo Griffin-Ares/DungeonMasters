@@ -31,7 +31,7 @@ void MainWindow::initialize() {
     camera_label->setText("Camera");
     camera_label->setFont(font);
     QLabel *filters_label = new QLabel(); // Filters label
-    filters_label->setText("Filters");
+    filters_label->setText("Texture");
     filters_label->setFont(font);
     QLabel *ec_label = new QLabel(); // Extra Credit label
     ec_label->setText("Extra Credit");
@@ -62,7 +62,7 @@ void MainWindow::initialize() {
     uploadFile->setText(QStringLiteral("Upload Scene File"));
     
     saveImage = new QPushButton();
-    saveImage->setText(QStringLiteral("Generate maze"));
+    saveImage->setText(QStringLiteral("Generate Maze"));
 
     // Creates the boxes containing the parameter sliders and number boxes
     QGroupBox *p1Layout = new QGroupBox(); // horizonal slider 1 alignment
@@ -162,6 +162,11 @@ void MainWindow::initialize() {
     lfar->addWidget(farBox);
     farLayout->setLayout(lfar);
 
+    // normal mapping
+    toggleNormalMapping = new QCheckBox();
+    toggleNormalMapping->setText(QStringLiteral("Normal Mapping"));
+    toggleNormalMapping->setChecked(false);
+
     // Extra Credit:
     ec1 = new QCheckBox();
     ec1->setText(QStringLiteral("Extra Credit 1"));
@@ -193,14 +198,7 @@ void MainWindow::initialize() {
     vLayout->addWidget(far_label);
     vLayout->addWidget(farLayout);
     vLayout->addWidget(filters_label);
-    vLayout->addWidget(filter1);
-    vLayout->addWidget(filter2);
-    // Extra Credit:
-    vLayout->addWidget(ec_label);
-    vLayout->addWidget(ec1);
-    vLayout->addWidget(ec2);
-    vLayout->addWidget(ec3);
-    vLayout->addWidget(ec4);
+    vLayout->addWidget(toggleNormalMapping);
 
     connectUIElements();
 
@@ -229,6 +227,7 @@ void MainWindow::connectUIElements() {
     connectSize();
     connectNear();
     connectFar();
+    connectNormalMapping();
     connectExtraCredit();
 }
 
@@ -278,12 +277,18 @@ void MainWindow::connectFar() {
             this, &MainWindow::onValChangeFarBox);
 }
 
+void MainWindow::connectNormalMapping() {
+    connect(toggleNormalMapping, &QCheckBox::clicked, this, &MainWindow::onToggleNormalMapping);
+}
+
 void MainWindow::connectExtraCredit() {
     connect(ec1, &QCheckBox::clicked, this, &MainWindow::onExtraCredit1);
     connect(ec2, &QCheckBox::clicked, this, &MainWindow::onExtraCredit2);
     connect(ec3, &QCheckBox::clicked, this, &MainWindow::onExtraCredit3);
     connect(ec4, &QCheckBox::clicked, this, &MainWindow::onExtraCredit4);
 }
+
+
 
 void MainWindow::onPerPixelFilter() {
     settings.perPixelFilter = !settings.perPixelFilter;
@@ -385,6 +390,11 @@ void MainWindow::onValChangeFarBox(double newValue) {
     farSlider->setValue(int(newValue*100.f));
     //farBox->setValue(newValue);
     settings.farPlane = farBox->value();
+    realtime->settingsChanged();
+}
+
+void MainWindow::onToggleNormalMapping() {
+    settings.normalMapping = !settings.normalMapping;
     realtime->settingsChanged();
 }
 

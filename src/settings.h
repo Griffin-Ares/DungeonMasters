@@ -12,6 +12,7 @@ struct Settings {
     int size = 5;
     bool perPixelFilter = false;
     bool kernelBasedFilter = false;
+    bool normalMapping = false;
     bool extraCredit1 = false;
     bool extraCredit2 = false;
     bool extraCredit3 = false;

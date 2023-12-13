@@ -175,11 +175,7 @@ void Realtime::initializeGL() {
 
     glActiveTexture(GL_TEXTURE0);
 
-    // toggling texture on and off
-    // TODO implement! create button and attach functionality to that
-    // might have to move to paintGL() ??
-    int isTexturedBool = 1;  // 1 for true, 0 for false. currently hardcoded to true
-    glUniform1i(glGetUniformLocation(m_shader, "isTextured"), isTexturedBool);
+    toggleTexture = false;
 
     // TBN matrices
     float positiveX[3][3] = {
@@ -314,6 +310,14 @@ void Realtime::bindVbo(PrimitiveType shapeType, GLuint vbo) {
 }
 
 void Realtime::paintGL() {
+    glUseProgram(m_shader);
+    // toggling normal mapping on and off
+    GLint textureLoc = glGetUniformLocation(m_shader, "isTextured");
+    if (toggleTexture) {
+        glUniform1i(textureLoc, 1);
+    } else {
+        glUniform1i(textureLoc, 0);
+    }
 
     // sentry
     if (renderData.shapes.empty()) {
@@ -575,10 +579,10 @@ void Realtime::sceneChanged() {
 void Realtime::settingsChanged() {
     if (initializedRun) {
         cam.setPlanes(settings.nearPlane, settings.farPlane);
+        toggleTexture = settings.normalMapping;
         Realtime::initializeShapeVBOs();
     }
     update(); // asks for a PaintGL() call to occur
-
 }
 
 // ================== Project 6: Action!

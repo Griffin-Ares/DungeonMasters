@@ -60,6 +60,8 @@ private:
     QImage m_floor_image;
     GLuint m_brick_texture;
     GLuint m_floor_texture;
+    bool toggleTexture;
+
 
     Dungeon dungeon;
 
