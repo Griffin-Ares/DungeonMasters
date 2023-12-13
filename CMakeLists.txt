@@ -46,6 +46,8 @@ add_executable(${PROJECT_NAME}
     src/shapes/Cone.cpp src/shapes/Cone.h src/shapes/Cube.cpp src/shapes/Cube.h src/shapes/Cylinder.cpp src/shapes/Cylinder.h src/shapes/Sphere.cpp src/shapes/Sphere.h src/shapes/Tet.cpp src/shapes/Tet.h src/shapes/Triangle.cpp src/shapes/Triangle.h
     src/dungeon.h src/room.h
     src/dungeon.cpp src/room.cpp
+    src/beziercurve.h src/beziercurve.cpp
+
 )
 
 # GLM: this creates its library and allows you to `#include "glm/..."`
@@ -56,6 +58,7 @@ add_library(StaticGLEW STATIC glew/src/glew.c
     src/dungeon.h src/dungeon.cpp
     src/room.h src/room.cpp
     src/debug.h
+
 )
 include_directories(${PROJECT_NAME} PRIVATE glew/include)
 

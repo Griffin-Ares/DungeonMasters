@@ -137,6 +137,8 @@ glm::mat4 createRotationMatrix(float angle, const glm::vec3& axis) {
     return rotationMatrix;
 }
 
+
+
 void Camera::rotateCamera(float deltaX, float deltaY) {
     float sensitivity = 0.001f; // sens
 
