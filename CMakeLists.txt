@@ -55,6 +55,7 @@ add_subdirectory(glm)
 add_library(StaticGLEW STATIC glew/src/glew.c
     src/dungeon.h src/dungeon.cpp
     src/room.h src/room.cpp
+    src/debug.h
 )
 include_directories(${PROJECT_NAME} PRIVATE glew/include)
 

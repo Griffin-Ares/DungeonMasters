@@ -36,6 +36,8 @@ uniform vec4 matAmbient;
 uniform vec4 matDiffuse;
 uniform vec4 matSpecular;
 
+// TODO: compare against lab 11, LINE BY LINE
+
 // NORMAL MAPPING :D
 uniform sampler2D brickMap;
 uniform sampler2D floorMap;
@@ -71,7 +73,7 @@ vec3 applyNormalMapping() {
     vec3 newNormal;
     vec3 sampledNormal;
     // if normal is pointing up or down, use concrete floor map
-    if (dot(normalize(normal), vec3(0, 1, 0)) > 0.9 || dot(normalize(normal), vec3(0, -1, 0)) > 0.9) {
+    if (dot(normalize(normal), vec3(0, 1, 0)) > 0.3 || dot(normalize(normal), vec3(0, -1, 0)) > 0.3) {
         fragColor = vec3(.402, .387, .391); // brownish grey for floor
         sampledNormal = sampleFloorColor();
         newNormal = 2 * sampledNormal - vec3(1.f); // maps from color range to normal range
@@ -79,22 +81,22 @@ vec3 applyNormalMapping() {
     // otherwise, use brick wall map
     } else {
         fragColor = vec3(.535, .469, .398); // reddish brown for bricks
-        // fragColor = vec3(texture(brickMap, vec2(0.5, 0.5))); // for testing
+        //fragColor = vec3(texture(brickMap, vec2(0.5, 0.5))); // for testing
         // sample normal from map, convert from [0, 1] to [-1, 1], and transform into world space
-        if (dot(normalize(normal), vec3(1, 0, 0)) > 0.9) { // wall facing positive x direction
-            // fragColor = vec3(1.0, 1.0, 1.0); // for testing
+        if (dot(normalize(normal), vec3(1, 0, 0)) > 0.3) { // wall facing positive x direction
+            //fragColor = vec3(1.0, 1.0, 1.0); // for testing
             sampledNormal = sampleBrickColor(worldSpacePos.z, worldSpacePos.y);
             newNormal = 2 * sampledNormal - vec3(1.f);
             newNormal = posX * newNormal;
-        } else if (dot(normalize(normal), vec3(-1, 0, 0)) > 0.9) { // wall facing negative x direction
+        } else if (dot(normalize(normal), vec3(-1, 0, 0)) > 0.3) { // wall facing negative x direction
             sampledNormal = sampleBrickColor(-worldSpacePos.z, worldSpacePos.y);
             newNormal = 2 * sampledNormal - vec3(1.f);
             newNormal = negX * newNormal;
-        } else if (dot(normalize(normal), vec3(0, 0, 1)) > 0.9) { // wall facing positive z direction
+        } else if (dot(normalize(normal), vec3(0, 0, 1)) > 0.3) { // wall facing positive z direction
             sampledNormal = sampleBrickColor(-worldSpacePos.x, worldSpacePos.y);
             newNormal = 2 * sampledNormal - vec3(1.f);
             newNormal = posZ * newNormal;
-        } else if (dot(normalize(normal), vec3(0, 0, -1)) > 0.9) { // wall facing negative z direction
+        } else if (dot(normalize(normal), vec3(0, 0, -1)) > 0.3) { // wall facing negative z direction
             sampledNormal = sampleBrickColor(worldSpacePos.x, worldSpacePos.y);
             newNormal = 2 * sampledNormal - vec3(1.f);
             newNormal = negZ * newNormal;

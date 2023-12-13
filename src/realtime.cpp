@@ -1,4 +1,5 @@
 #include "realtime.h"
+#include "debug.h"
 
 #include <QCoreApplication>
 #include <QMouseEvent>
@@ -122,8 +123,8 @@ void Realtime::initializeGL() {
 
     // Set up vertex attribute pointers
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), reinterpret_cast<void*>(0));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), reinterpret_cast<void*>(0));
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), reinterpret_cast<void*>(3 * sizeof(GL_FLOAT))); // ERROR HERE!! invalid operation
     GLenum error1 = glGetError();
     if (error1 != GL_NO_ERROR) {
@@ -150,14 +151,14 @@ void Realtime::initializeGL() {
     m_brick_image = m_brick_image.convertToFormat(QImage::Format_RGBA8888).mirrored(); // format image to fit OpenGL
     glGenTextures(1, &m_brick_texture); // generate brick texture
     glActiveTexture(GL_TEXTURE0); // set the active texture slot to texture slot 0
-    glBindTexture(GL_TEXTURE_2D, m_brick_texture);
+    glBindTexture(GL_TEXTURE_2D, m_brick_texture); // bind brick texture
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_brick_image.width(), m_brick_image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, m_brick_image.bits()); // load image into brick texture
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // set min and mag filters' interpolation mode to linear
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glBindTexture(GL_TEXTURE_2D, 0); // unbind brick texture
     // set the default.frag uniform for brick texture
-    GLuint brickTexLocation = glGetUniformLocation(m_shader, "brickMap");
-    glUniform1i(brickTexLocation, 0); // formerly error here; invalud error for GL_TEXTURE0
+    m_brick_location = glGetUniformLocation(m_shader, "brickMap");
+    //glUniform1i(brickTexLocation, 0);
 
     // load floor texture
     QString floor_filepath = QString(":/resources/floorfinal.png"); // prepare filepath
@@ -171,10 +172,9 @@ void Realtime::initializeGL() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glBindTexture(GL_TEXTURE_2D, 0); // unbind floor texture
     // set the default.frag uniform for floor texture
-    GLuint floorTexLocation = glGetUniformLocation(m_shader, "floorMap");
-    glUniform1i(floorTexLocation, 1); // formerly error here; invalid error for GL_TEXTURE0
+    m_floor_location = glGetUniformLocation(m_shader, "floorMap");
+    //glUniform1i(floorTexLocation, 1);
 
-    glActiveTexture(GL_TEXTURE0);
     toggleTexture = false;
 
     // TBN matrices
@@ -215,7 +215,7 @@ void Realtime::initializeGL() {
     glUniformMatrix3fv(matrixLocation4, 1, GL_FALSE, &negativeZ[0][0]);
     GLint matrixLocation5 = glGetUniformLocation(m_shader, "posY");
     glUniformMatrix3fv(matrixLocation5, 1, GL_FALSE, &positiveY[0][0]);
-    glUseProgram(0);
+    //glUseProgram(0); uncomment
     // NORMAL MAPPING STUFF ENDS
 
 //    glUseProgram(m_texture_shader);  // Use the texture shader program UNCOMMENT
@@ -326,13 +326,13 @@ void Realtime::paintGL() {
     if (renderData.shapes.empty()) {
         return;
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
 
+    glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
     glViewport(0, 0, m_fbo_width, m_fbo_height);
 
     // Students: anything requiring OpenGL calls every frame should be done here
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-   // glUseProgram(m_shader); // uncomment
+    glUseProgram(m_shader); // uncomment
 
     // camera stuff, update every paintGL to prepare for movement in Action
     glm::mat4 view = cam.getViewMatrix();
@@ -420,11 +420,20 @@ void Realtime::paintGL() {
             GLint shinyLoc = glGetUniformLocation(m_shader, "shininess");
             glUniform1f(shinyLoc, component.primitive.material.shininess);
 
+            // normal mapping
+            glActiveTexture(GL_TEXTURE0); // set the active texture slot to texture slot 0
+            glBindTexture(GL_TEXTURE_2D, m_brick_texture); // bind brick texture
+
+            glActiveTexture(GL_TEXTURE1); // set the active texture slot to texture slot 0
+            glBindTexture(GL_TEXTURE_2D, m_floor_texture); // bind brick texture
+
+            glUniform1i(m_brick_location, 0);
+            glUniform1i(m_floor_location, 1);
+
             // draw
             glDrawArrays(GL_TRIANGLES, 0, vertexCount[component.primitive.type]);
         }
     }
-
 
     glBindFramebuffer(GL_FRAMEBUFFER, m_defaultFBO);
     glViewport(0, 0, m_screen_width * this->devicePixelRatio(), m_screen_height * this->devicePixelRatio());
@@ -432,8 +441,9 @@ void Realtime::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     paintTexture(m_fbo_texture, true); // UNCOMMENT
 
-    // Unbind VAO and shaders
+    // Unbind VAO, textures, and shaders
     glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D,0);
     glUseProgram(0);
 }
 
