@@ -24,6 +24,13 @@ void MainWindow::initialize() {
     QFont font;
     font.setPointSize(12);
     font.setBold(true);
+    QLabel *control_label = new QLabel(); // Controls label
+    control_label->setText("Controls");
+    control_label->setFont(font);
+    font.setBold(false);
+    QLabel *keys_label = new QLabel(); // Controls label
+    keys_label->setText("W: move forward<br> S: move backward<br> A: move left<br> D: move right<br> B: move along Bezier curve");
+    font.setBold(true);
     QLabel *tesselation_label = new QLabel(); // Parameters label
     tesselation_label->setText("Tesselation");
     tesselation_label->setFont(font);
@@ -186,6 +193,10 @@ void MainWindow::initialize() {
 
     vLayout->addWidget(uploadFile);
     vLayout->addWidget(saveImage);
+    vLayout->addWidget(control_label);
+    vLayout->addWidget(keys_label);
+    vLayout->addWidget(filters_label);
+    vLayout->addWidget(toggleNormalMapping);
     vLayout->addWidget(tesselation_label);
     vLayout->addWidget(param1_label);
     vLayout->addWidget(p1Layout);
@@ -197,8 +208,6 @@ void MainWindow::initialize() {
     vLayout->addWidget(nearLayout);
     vLayout->addWidget(far_label);
     vLayout->addWidget(farLayout);
-    vLayout->addWidget(filters_label);
-    vLayout->addWidget(toggleNormalMapping);
 
     connectUIElements();
 

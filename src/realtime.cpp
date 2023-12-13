@@ -314,7 +314,7 @@ void Realtime::bindVbo(PrimitiveType shapeType, GLuint vbo) {
 
 void Realtime::paintGL() {
     glUseProgram(m_shader);
-    // toggling normal mapping on and off
+    // toggling normal mapping
     GLint textureLoc = glGetUniformLocation(m_shader, "isTextured");
     if (toggleTexture) {
         glUniform1i(textureLoc, 1);
@@ -420,7 +420,7 @@ void Realtime::paintGL() {
             GLint shinyLoc = glGetUniformLocation(m_shader, "shininess");
             glUniform1f(shinyLoc, component.primitive.material.shininess);
 
-            // normal mapping
+            // bind normal maps
             glActiveTexture(GL_TEXTURE0); // set the active texture slot to texture slot 0
             glBindTexture(GL_TEXTURE_2D, m_brick_texture); // bind brick texture
 

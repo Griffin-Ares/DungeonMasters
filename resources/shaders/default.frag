@@ -38,7 +38,6 @@ uniform vec4 matSpecular;
 
 
 // NORMAL MAPPING :D
-// TODO: mipmapping
 uniform sampler2D brickMap;
 uniform sampler2D floorMap;
 uniform int isTextured; // true if == 1, false otherwise
@@ -49,27 +48,6 @@ uniform mat3 negZ;
 uniform mat3 posY;
 vec3 newNormal;
 
-//float getLOD(float u, float v, int isBrick) {
-//    vec2 texSize;
-//    if (isBrick == 1) {
-//        texSize = textureSize(brickMap, 0);  // Size of the base mip level
-//    } else {
-//        texSize = textureSize(floorMap, 0);
-//    }
-
-//    vec2 texelSize = 1.0 / texSize;
-
-//    vec2 dx = dFdx(vec2(u, v));  // Screen-space partial derivative in X
-//    vec2 dy = dFdy(vec2(u, v));  // Screen-space partial derivative in Y
-
-//    // Calculate the length of the gradient in screen space
-//    float gradientLength = max(length(dx), length(dy));
-
-//    // Calculate the LOD based on the screen-space gradient
-//    float lod = log2(gradientLength / dot(texelSize.x, texelSize.y));
-
-//    return lod;
-//}
 
 /* naming is a little confusing, so just to clarify: these two functions return colors that
   will represent normals after being mapped from color range [0, 1] to normal range [-1, 1]
@@ -80,7 +58,6 @@ vec3 sampleBrickColor(float x, float y) {
     float textureU = float(intX % 350) / 350.0;
     float textureV = float(intY % 350) / 350.0;
     return vec3(texture(brickMap, vec2(textureU, textureV)));
-    //return vec3(textureLod(brickMap, vec2(textureU, textureV), getLOD(x, y, 1)));
 };
 
 vec3 sampleFloorColor() {
@@ -92,13 +69,13 @@ vec3 sampleFloorColor() {
 };
 
 vec3 applyColorAndTexture() {
-    fragColor = vec3(.535, .469, .398); // reddish brown for bricks
+    fragColor = vec3(0.4, 0.3, 0.2);
+    //fragColor = vec3(.535, .469, .398); // reddish brown for bricks
     newNormal == vec3(0.0);
     vec3 sampledNormal;
     // if normal is pointing up or down, use concrete floor map
     if (dot(normalize(normal), vec3(0, 1, 0)) > 0.9 || dot(normalize(normal), vec3(0, -1, 0)) > 0.9) {
-        fragColor = vec3(.4, .357, .294); // brownish grey for floor
-        //fragColor = sampleFloorColor(); // for testing
+        fragColor = vec3(.3, .2, .1); // brownish grey for floor
         if (isTextured == 1) {
             sampledNormal = sampleFloorColor();
             newNormal = 2 * sampledNormal - vec3(1.f); // maps from color range to normal range
@@ -139,7 +116,6 @@ void main() {
     vec3 norm = normalize(applyColorAndTexture());
     fragColor = vec3(k_a) * fragColor;
 
-    //vec3 lightDir = normalize(lightPos.xyz - worldSpacePos);
     for (int i = 0; i < lightCount; ++i) {
         vec3 lightPos;
         float fatt;
@@ -184,7 +160,7 @@ void main() {
 
         float lightDot = max(dot(norm, lightPos), 0.0);
 
-        // Task 14: add specular component to output color
+        // specular
         vec3 reflectedLight = reflect(-lightPos, norm);
         vec3 viewDir = vec3(normalize(camPos - vec4(worldSpacePos, 1.0f)));
         float specIntensity = shininess > 0 ? pow(max(dot(viewDir, reflectedLight), 0.0f), shininess) : 1.f;
