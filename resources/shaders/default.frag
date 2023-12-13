@@ -36,73 +36,75 @@ uniform vec4 matAmbient;
 uniform vec4 matDiffuse;
 uniform vec4 matSpecular;
 
-// TODO: compare against lab 11, LINE BY LINE
+// TODO: fix lighting
 
 // NORMAL MAPPING :D
 uniform sampler2D brickMap;
 uniform sampler2D floorMap;
-// TODO: fix isTextured so that only the texture is affected, not color
 uniform int isTextured; // true if == 1, false otherwise
-//mat3 posX; mat3 negX; mat3 posZ; mat3 negZ; mat3 posY;
 uniform mat3 posX; // TBN matrices
-uniform mat3 negX; // TOFIX!!!! walls facing one direction are green??????
+uniform mat3 negX;
 uniform mat3 posZ;
 uniform mat3 negZ;
 uniform mat3 posY;
+vec3 newNormal;
 
 /* naming is a little confusing, so just to clarify: these two functions return colors that
   will represent normals after being mapped from color range [0, 1] to normal range [-1, 1]
-  the actual colors of the bricks and the floor are hardcoded in applyNormalMapping() */
+  the actual colors of the bricks and the floor are hardcoded in applyColorAndTexture() */
 vec3 sampleBrickColor(float x, float y) {
-    int intX = int(round((x/3.f) * 500));
-    int intY = int(round((y/3.f) * 500));
-    float textureU = float(intX % 500) / 500.0; // TOCHECK: that 3 is the height of the walls
-    float textureV = float(intY % 500) / 500.0;
+    int intX = int(round((x/3.f) * 350));
+    int intY = int(round((y/3.f) * 350));
+    float textureU = float(intX % 350) / 350.0; // TOCHECK: that 3 is the height of the walls
+    float textureV = float(intY % 350) / 350.0;
     return vec3(texture(brickMap, vec2(textureU, textureV)));
 };
 
 vec3 sampleFloorColor() {
-    int intX = int(round((worldSpacePos.x/3.f) * 500));
-    int intZ = int(round((worldSpacePos.z/3.f) * 500));
-    float textureU = float(intX % 500) / 500;
-    float textureV = float(intZ % 500) / 3.0;
+    int intX = int(round((worldSpacePos.x/3.f) * 350));
+    int intZ = int(round((worldSpacePos.z/3.f) * 350));
+    float textureU = float(intX % 350) / 350;
+    float textureV = float(intZ % 350) / 3.0;
     return vec3(texture(floorMap, vec2(textureU, textureV)));
 };
 
-vec3 applyNormalMapping() {
-    vec3 newNormal;
+vec3 applyColorAndTexture() {
+    fragColor = vec3(.535, .469, .398); // reddish brown for bricks
+    newNormal == vec3(0.0);
     vec3 sampledNormal;
     // if normal is pointing up or down, use concrete floor map
-    if (dot(normalize(normal), vec3(0, 1, 0)) > 0.3 || dot(normalize(normal), vec3(0, -1, 0)) > 0.3) {
-        fragColor = vec3(.402, .387, .391); // brownish grey for floor
-        sampledNormal = sampleFloorColor();
-        newNormal = 2 * sampledNormal - vec3(1.f); // maps from color range to normal range
-        newNormal = posY * newNormal; // bring normal from normal map space into world space
+    if (dot(normalize(normal), vec3(0, 1, 0)) > 0.9 || dot(normalize(normal), vec3(0, -1, 0)) > 0.9) {
+        fragColor = vec3(.4, .357, .294); // brownish grey for floor
+        if (isTextured == 1) {
+            sampledNormal = sampleFloorColor();
+            newNormal = 2 * sampledNormal - vec3(1.f); // maps from color range to normal range
+            newNormal = posY * newNormal; // bring normal from normal map space into world space
+        }
     // otherwise, use brick wall map
     } else {
-        fragColor = vec3(.535, .469, .398); // reddish brown for bricks
-        //fragColor = vec3(texture(brickMap, vec2(0.5, 0.5))); // for testing
-        // sample normal from map, convert from [0, 1] to [-1, 1], and transform into world space
-        if (dot(normalize(normal), vec3(1, 0, 0)) > 0.3) { // wall facing positive x direction
-            //fragColor = vec3(1.0, 1.0, 1.0); // for testing
-            sampledNormal = sampleBrickColor(worldSpacePos.z, worldSpacePos.y);
-            newNormal = 2 * sampledNormal - vec3(1.f);
-            newNormal = posX * newNormal;
-        } else if (dot(normalize(normal), vec3(-1, 0, 0)) > 0.3) { // wall facing negative x direction
-            sampledNormal = sampleBrickColor(-worldSpacePos.z, worldSpacePos.y);
-            newNormal = 2 * sampledNormal - vec3(1.f);
-            newNormal = negX * newNormal;
-        } else if (dot(normalize(normal), vec3(0, 0, 1)) > 0.3) { // wall facing positive z direction
-            sampledNormal = sampleBrickColor(-worldSpacePos.x, worldSpacePos.y);
-            newNormal = 2 * sampledNormal - vec3(1.f);
-            newNormal = posZ * newNormal;
-        } else if (dot(normalize(normal), vec3(0, 0, -1)) > 0.3) { // wall facing negative z direction
-            sampledNormal = sampleBrickColor(worldSpacePos.x, worldSpacePos.y);
-            newNormal = 2 * sampledNormal - vec3(1.f);
-            newNormal = negZ * newNormal;
-        } else {
-            newNormal = normal;
+        if (isTextured == 1) {
+            // sample normal from map, convert from [0, 1] to [-1, 1], and transform into world space
+            if (dot(normalize(normal), vec3(1, 0, 0)) > 0.9) { // wall facing positive x direction
+                sampledNormal = sampleBrickColor(worldSpacePos.z, worldSpacePos.y);
+                newNormal = 2 * sampledNormal - vec3(1.f);
+                newNormal = posX * newNormal;
+            } else if (dot(normalize(normal), vec3(-1, 0, 0)) > 0.9) { // wall facing negative x direction
+                sampledNormal = sampleBrickColor(-worldSpacePos.z, worldSpacePos.y);
+                newNormal = 2 * sampledNormal - vec3(1.f);
+                newNormal = negX * newNormal;
+            } else if (dot(normalize(normal), vec3(0, 0, 1)) > 0.9) { // wall facing positive z direction
+                sampledNormal = sampleBrickColor(-worldSpacePos.x, worldSpacePos.y);
+                newNormal = 2 * sampledNormal - vec3(1.f);
+                newNormal = posZ * newNormal;
+            } else if (dot(normalize(normal), vec3(0, 0, -1)) > 0.9) { // wall facing negative z direction
+                sampledNormal = sampleBrickColor(worldSpacePos.x, worldSpacePos.y);
+                newNormal = 2 * sampledNormal - vec3(1.f);
+                newNormal = negZ * newNormal;
+            }
         }
+    }
+    if (newNormal == vec3(0.0)) {
+        newNormal = normal;
     }
     return newNormal;
 }
@@ -111,18 +113,7 @@ vec3 applyNormalMapping() {
 void main() {
     // Remember that you need to renormalize vectors here if you want them to be normalized
 
-    /* comment out below stuff when ready to turn on normal mapping */
-//    fragColor = vec3(k_a) * matAmbient.xyz;
-//    vec3 norm = normalize(normal);
-    /* uncomment below stuff when ready to turn on normal mapping */
-        vec3 norm;
-        if (isTextured == 1) {
-            norm = normalize(applyNormalMapping());
-            // fragColor is adjusted within applyNormalMapping()
-        } else {
-            norm = normalize(normal);
-            fragColor = matAmbient.xyz;
-        }
+    vec3 norm = normalize(applyColorAndTexture());
     fragColor = vec3(k_a) * fragColor;
 
     //vec3 lightDir = normalize(lightPos.xyz - worldSpacePos);

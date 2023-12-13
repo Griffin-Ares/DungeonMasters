@@ -67,7 +67,8 @@ void Room::generateWalls(glm::vec4 state) {
         wallCTM = glm::scale(wallCTM, glm::vec3(wallLength, wallHeight, wallThickness));
 
         wall.primitive.material.cAmbient = glm::vec4(1.0f);
-        wall.primitive.material.cDiffuse = colors[i];
+        //wall.primitive.material.cDiffuse = colors[i];
+        wall.primitive.material.cDiffuse = glm::vec4(.535, .469, .398, 1.f);
         wall.primitive.material.cSpecular = glm::vec4(1.0f);
         wall.primitive.material.shininess = 25.f;
 
