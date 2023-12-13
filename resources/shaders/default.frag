@@ -54,18 +54,18 @@ uniform mat3 posY;
   will represent normals after being mapped from color range [0, 1] to normal range [-1, 1]
   the actual colors of the bricks and the floor are hardcoded in applyNormalMapping() */
 vec3 sampleBrickColor(float x, float y) {
-    int intX = int(round(x));
-    int intY = int(round(y));
-    float textureU = float(intX % 3) / 3.0; // TOCHECK: that 3 is the height of the walls
-    float textureV = float(intY % 3) / 3.0;
+    int intX = int(round((x/3.f) * 500));
+    int intY = int(round((y/3.f) * 500));
+    float textureU = float(intX % 500) / 500.0; // TOCHECK: that 3 is the height of the walls
+    float textureV = float(intY % 500) / 500.0;
     return vec3(texture(brickMap, vec2(textureU, textureV)));
 };
 
 vec3 sampleFloorColor() {
-    int intX = int(round(worldSpacePos.x));
-    int intZ = int(round(worldSpacePos.z));
-    float textureU = float(intX % 3) / 3.0;
-    float textureV = float(intZ % 3) / 3.0;
+    int intX = int(round((worldSpacePos.x/3.f) * 500));
+    int intZ = int(round((worldSpacePos.z/3.f) * 500));
+    float textureU = float(intX % 500) / 500;
+    float textureV = float(intZ % 500) / 3.0;
     return vec3(texture(floorMap, vec2(textureU, textureV)));
 };
 
