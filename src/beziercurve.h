@@ -9,7 +9,7 @@ public:
 
     glm::vec3 calculatePoints(float t);
 
-    void setControlPoints(const glm::vec3& start, const glm::vec3& control1, const glm::vec3& control2, const glm::vec3 end);
+    void setControlPoints(const glm::vec3 start, const glm::vec3 control1, const glm::vec3 control2, const glm::vec3 end);
 
 
 private:

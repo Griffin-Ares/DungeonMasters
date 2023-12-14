@@ -165,7 +165,8 @@ void Camera::updatePosition(float speed, float deltaTime) {
     float t = 0.0f;
     BezierCurve bezier;
 
-    bezier.setControlPoints([10.0,20.0,20.0], [40.0,20.0,40.0], [70.0,20.0,80.0], [90.0,20.0,100.0]);
+    //bezier.setControlPoints(glm::vec3(50.0,5.0,5.0), glm::vec3(50.0,10.0,20.0), glm::vec3(50.0,15.0,10.0), glm::vec3(50.0,20.0,20.0));
+    bezier.setControlPoints(glm::vec3(30.0, 15.0, 10.0), glm::vec3(30.0, 50.0, 30.0), glm::vec3(30.0, 35.0, 20.0), glm::vec3(30.0, 40.0, 40.0));
 
     glm::vec3 cameraPosition = bezier.calculatePoints(t);
 
@@ -174,7 +175,7 @@ void Camera::updatePosition(float speed, float deltaTime) {
 
     float distance = speed * deltaTime;
 
-    t += 0.01f * deltaTime; // Adjust the factor as needed
+    t += 0.0001f * deltaTime; // Adjust the factor as needed
 
     data.pos += glm::vec4(cameraPosition * distance, 0.0f);
 };

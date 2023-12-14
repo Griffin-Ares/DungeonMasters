@@ -6,7 +6,7 @@
 BezierCurve::BezierCurve() {}
 
 
- void BezierCurve::setControlPoints(const glm::vec3& start, const glm::vec3& control1, const glm::vec3& control2, const glm::vec3 end) {
+ void BezierCurve::setControlPoints(const glm::vec3 start, const glm::vec3 control1, const glm::vec3 control2, const glm::vec3 end) {
         p0 = start;
         p1 = control1;
         p2 = control2;

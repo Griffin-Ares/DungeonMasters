@@ -48,7 +48,6 @@ uniform mat3 negZ;
 uniform mat3 posY;
 vec3 newNormal;
 
-
 /* naming is a little confusing, so just to clarify: these two functions return colors that
   will represent normals after being mapped from color range [0, 1] to normal range [-1, 1]
   the actual colors of the bricks and the floor are hardcoded in applyColorAndTexture() */
@@ -69,13 +68,12 @@ vec3 sampleFloorColor() {
 };
 
 vec3 applyColorAndTexture() {
-    fragColor = vec3(0.4, 0.3, 0.2);
-    //fragColor = vec3(.535, .469, .398); // reddish brown for bricks
+    fragColor = vec3(.24, .23, .20);
     newNormal == vec3(0.0);
     vec3 sampledNormal;
     // if normal is pointing up or down, use concrete floor map
     if (dot(normalize(normal), vec3(0, 1, 0)) > 0.9 || dot(normalize(normal), vec3(0, -1, 0)) > 0.9) {
-        fragColor = vec3(.3, .2, .1); // brownish grey for floor
+        fragColor = vec3(.62, .61, .59);
         if (isTextured == 1) {
             sampledNormal = sampleFloorColor();
             newNormal = 2 * sampledNormal - vec3(1.f); // maps from color range to normal range
