@@ -2,6 +2,7 @@
 #include "camera.h"
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
+#include "beziercurve.h"
 
 Camera::Camera(const SceneCameraData &cameraData, const int width, const int height, const float nearPlane, const float farPlane)
     : data(cameraData), width(width), height(height), nearPlane(nearPlane), farPlane(farPlane) {
@@ -155,4 +156,25 @@ void Camera::rotateCamera(float deltaX, float deltaY) {
 
     data.look = glm::normalize(data.look);
     data.up = glm::normalize(data.up);
+}
+
+
+
+
+void Camera::updatePosition(float deltaTime) {
+    float t = 0.0f;
+    BezierCurve bezier;
+
+    bezier.setControlPoints((10,20,20), (40,20,40), (70,20,80), (90,20,100));
+
+    glm::vec3 cameraPosition = bezier.CalculatePoint(t);
+
+    // Update the camera view matrix
+    glm::mat4 viewMatrix = glm::lookAt(cameraPosition, targetPosition, upVector);
+
+    float distance = speed * deltaTime;
+
+    t += 0.01f * deltaTime; // Adjust the factor as needed
+
+    data.pos += glm::vec4(cameraPosition * distance, 0.0f);
 }

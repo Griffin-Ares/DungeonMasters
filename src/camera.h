@@ -44,6 +44,7 @@ public:
     void moveRight(float distance, float deltaTime);
     void moveUp(float speed, float deltaTime);
     void rotateCamera(float deltaX, float deltaY);
+    void updatePosition(float speed, float deltaTime);
 
 private:
     int width;

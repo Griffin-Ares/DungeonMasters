@@ -661,5 +661,9 @@ void Realtime::timerEvent(QTimerEvent *event) {
         cam.moveUp(-5.f, deltaTime);
     }
 
+    if (m_keyMap[Qt::Key_B]) {
+        cam.updatePosition(-5.f, deltaTime);
+    }
+
     update(); // asks for a PaintGL() call to occur
 }
