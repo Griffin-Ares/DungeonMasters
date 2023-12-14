@@ -175,7 +175,7 @@ void Camera::updatePosition(float speed, float deltaTime) {
 
     float distance = speed * deltaTime;
 
-    t += 0.0001f * deltaTime * speed; // Adjust the factor as needed
+    t += 0.0001f * deltaTime; // Adjust the factor as needed
 
     data.pos += glm::vec4(cameraPosition * distance, 0.0f);
 };
