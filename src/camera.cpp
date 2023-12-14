@@ -161,20 +161,20 @@ void Camera::rotateCamera(float deltaX, float deltaY) {
 
 
 
-void Camera::updatePosition(float deltaTime) {
+void Camera::updatePosition(float speed, float deltaTime) {
     float t = 0.0f;
     BezierCurve bezier;
 
-    bezier.setControlPoints((10,20,20), (40,20,40), (70,20,80), (90,20,100));
+    bezier.setControlPoints([10.0,20.0,20.0], [40.0,20.0,40.0], [70.0,20.0,80.0], [90.0,20.0,100.0]);
 
-    glm::vec3 cameraPosition = bezier.CalculatePoint(t);
+    glm::vec3 cameraPosition = bezier.calculatePoints(t);
 
     // Update the camera view matrix
-    glm::mat4 viewMatrix = glm::lookAt(cameraPosition, targetPosition, upVector);
+   // glm::mat4 viewMatrix = glm::lookAt(cameraPosition, targetPosition, upVector);
 
     float distance = speed * deltaTime;
 
     t += 0.01f * deltaTime; // Adjust the factor as needed
 
     data.pos += glm::vec4(cameraPosition * distance, 0.0f);
-}
+};
