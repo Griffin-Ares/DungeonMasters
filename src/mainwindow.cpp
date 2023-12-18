@@ -29,7 +29,7 @@ void MainWindow::initialize() {
     control_label->setFont(font);
     font.setBold(false);
     QLabel *keys_label = new QLabel(); // Controls label
-    keys_label->setText("W: move forward<br> S: move backward<br> A: move left<br> D: move right<br> B: move along Bezier curve");
+    keys_label->setText("Mouse: look around <br> W: move forward<br> S: move backward<br> A: move left<br> D: move right<br> Space: move up<br> CTRL: move down<br> B: move along Bezier curve");
     font.setBold(true);
     QLabel *tesselation_label = new QLabel(); // Parameters label
     tesselation_label->setText("Tesselation");

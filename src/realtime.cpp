@@ -125,11 +125,11 @@ void Realtime::initializeGL() {
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), reinterpret_cast<void*>(0));
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), reinterpret_cast<void*>(3 * sizeof(GL_FLOAT))); // ERROR HERE!! invalid operation
-    GLenum error1 = glGetError();
-    if (error1 != GL_NO_ERROR) {
-        std::cerr << "OpenGL Error 1: " << gluErrorString(error1) << std::endl;
-    }
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), reinterpret_cast<void*>(3 * sizeof(GL_FLOAT))); // FORMERLY ERROR HERE!! invalid operation
+//    GLenum error1 = glGetError();
+//    if (error1 != GL_NO_ERROR) {
+//        std::cerr << "OpenGL Error 1: " << gluErrorString(error1) << std::endl;
+//    }
 
     shapeTypeVBOs[PrimitiveType::PRIMITIVE_SPHERE] = 0;
     shapeTypeVBOs[PrimitiveType::PRIMITIVE_CUBE] = 0;
